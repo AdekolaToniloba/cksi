@@ -1,26 +1,47 @@
-"use client"
+// app\donate\demo\page.tsx
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { donationCampaigns, donationAmounts } from "@/data/donations"
-import { motion } from "framer-motion"
-import { Heart, Shield, CreditCard, Users, Target, Gift, AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { donationCampaigns, donationAmounts } from "@/data/donations";
+import { motion } from "framer-motion";
+import {
+  Heart,
+  Shield,
+  CreditCard,
+  Users,
+  Target,
+  Gift,
+  AlertCircle,
+} from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function DonateDemo() {
-  const [donationType, setDonationType] = useState("one-time")
-  const [selectedAmount, setSelectedAmount] = useState("")
-  const [customAmount, setCustomAmount] = useState("")
-  const [selectedCampaign, setSelectedCampaign] = useState("general")
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [donationType, setDonationType] = useState("one-time");
+  const [selectedAmount, setSelectedAmount] = useState("");
+  const [customAmount, setCustomAmount] = useState("");
+  const [selectedCampaign, setSelectedCampaign] = useState("general");
+  const [isProcessing, setIsProcessing] = useState(false);
   const [donorInfo, setDonorInfo] = useState({
     firstName: "",
     lastName: "",
@@ -29,22 +50,24 @@ export default function DonateDemo() {
     anonymous: false,
     newsletter: false,
     receipt: false,
-  })
+  });
 
-  const amount = customAmount || selectedAmount
+  const amount = customAmount || selectedAmount;
 
   const handleDonation = async () => {
     if (!amount || !donorInfo.email) {
-      alert("Please fill in all required fields")
-      return
+      alert("Please fill in all required fields");
+      return;
     }
 
-    setIsProcessing(true)
+    setIsProcessing(true);
 
     // Simulate processing
     setTimeout(() => {
-      alert("Demo Mode: This is a demonstration. No actual payment was processed.")
-      setIsProcessing(false)
+      alert(
+        "Demo Mode: This is a demonstration. No actual payment was processed."
+      );
+      setIsProcessing(false);
       // Reset form
       setDonorInfo({
         firstName: "",
@@ -54,11 +77,11 @@ export default function DonateDemo() {
         anonymous: false,
         newsletter: false,
         receipt: false,
-      })
-      setSelectedAmount("")
-      setCustomAmount("")
-    }, 2000)
-  }
+      });
+      setSelectedAmount("");
+      setCustomAmount("");
+    }, 2000);
+  };
 
   return (
     <div className="min-h-screen">
@@ -66,7 +89,8 @@ export default function DonateDemo() {
       <Alert className="mx-4 mt-4">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          This is a demo version of the donation page. No actual payments will be processed.
+          This is a demo version of the donation page. No actual payments will
+          be processed.
         </AlertDescription>
       </Alert>
 
@@ -101,8 +125,9 @@ export default function DonateDemo() {
               transition={{ delay: 0.4, duration: 0.6 }}
               className="text-xl text-muted-foreground mb-8"
             >
-              Your donation helps us continue our mission of empowering families and children across Nigeria. Every
-              contribution, no matter the size, creates lasting positive change in communities.
+              Your donation helps us continue our mission of empowering families
+              and children across Nigeria. Every contribution, no matter the
+              size, creates lasting positive change in communities.
             </motion.p>
           </div>
         </div>
@@ -124,13 +149,22 @@ export default function DonateDemo() {
                     <Gift className="h-5 w-5 text-primary" />
                     Donation Details (Demo Mode)
                   </CardTitle>
-                  <CardDescription>Choose your donation amount and frequency to support our programs</CardDescription>
+                  <CardDescription>
+                    Choose your donation amount and frequency to support our
+                    programs
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Donation Type */}
                   <div>
-                    <Label className="text-base font-semibold mb-3 block">Donation Type</Label>
-                    <RadioGroup value={donationType} onValueChange={setDonationType} className="flex gap-6">
+                    <Label className="text-base font-semibold mb-3 block">
+                      Donation Type
+                    </Label>
+                    <RadioGroup
+                      value={donationType}
+                      onValueChange={setDonationType}
+                      className="flex gap-6"
+                    >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="one-time" id="one-time" />
                         <Label htmlFor="one-time">One-time</Label>
@@ -144,20 +178,30 @@ export default function DonateDemo() {
 
                   {/* Amount Selection */}
                   <div>
-                    <Label className="text-base font-semibold mb-3 block">Select Amount (NGN)</Label>
+                    <Label className="text-base font-semibold mb-3 block">
+                      Select Amount (NGN)
+                    </Label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                       {donationAmounts.map((amount) => (
                         <Button
                           key={amount.value}
-                          variant={selectedAmount === amount.value.toString() ? "default" : "outline"}
+                          variant={
+                            selectedAmount === amount.value.toString()
+                              ? "default"
+                              : "outline"
+                          }
                           onClick={() => {
-                            setSelectedAmount(amount.value.toString())
-                            setCustomAmount("")
+                            setSelectedAmount(amount.value.toString());
+                            setCustomAmount("");
                           }}
                           className="h-16 flex flex-col transition-all duration-300 hover:scale-105"
                         >
-                          <span className="text-lg font-bold">₦{amount.value.toLocaleString()}</span>
-                          <span className="text-xs opacity-80">{amount.impact}</span>
+                          <span className="text-lg font-bold">
+                            ₦{amount.value.toLocaleString()}
+                          </span>
+                          <span className="text-xs opacity-80">
+                            {amount.impact}
+                          </span>
                         </Button>
                       ))}
                     </div>
@@ -171,8 +215,8 @@ export default function DonateDemo() {
                         placeholder="Enter custom amount"
                         value={customAmount}
                         onChange={(e) => {
-                          setCustomAmount(e.target.value)
-                          setSelectedAmount("")
+                          setCustomAmount(e.target.value);
+                          setSelectedAmount("");
                         }}
                         className="mt-1"
                       />
@@ -181,8 +225,13 @@ export default function DonateDemo() {
 
                   {/* Campaign Selection */}
                   <div>
-                    <Label className="text-base font-semibold mb-3 block">Choose Campaign</Label>
-                    <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
+                    <Label className="text-base font-semibold mb-3 block">
+                      Choose Campaign
+                    </Label>
+                    <Select
+                      value={selectedCampaign}
+                      onValueChange={setSelectedCampaign}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a campaign" />
                       </SelectTrigger>
@@ -205,7 +254,12 @@ export default function DonateDemo() {
                         id="first-name"
                         placeholder="Enter first name"
                         value={donorInfo.firstName}
-                        onChange={(e) => setDonorInfo({ ...donorInfo, firstName: e.target.value })}
+                        onChange={(e) =>
+                          setDonorInfo({
+                            ...donorInfo,
+                            firstName: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -215,7 +269,12 @@ export default function DonateDemo() {
                         id="last-name"
                         placeholder="Enter last name"
                         value={donorInfo.lastName}
-                        onChange={(e) => setDonorInfo({ ...donorInfo, lastName: e.target.value })}
+                        onChange={(e) =>
+                          setDonorInfo({
+                            ...donorInfo,
+                            lastName: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -226,7 +285,9 @@ export default function DonateDemo() {
                         type="email"
                         placeholder="Enter email address"
                         value={donorInfo.email}
-                        onChange={(e) => setDonorInfo({ ...donorInfo, email: e.target.value })}
+                        onChange={(e) =>
+                          setDonorInfo({ ...donorInfo, email: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -236,7 +297,9 @@ export default function DonateDemo() {
                         id="phone"
                         placeholder="Enter phone number"
                         value={donorInfo.phone}
-                        onChange={(e) => setDonorInfo({ ...donorInfo, phone: e.target.value })}
+                        onChange={(e) =>
+                          setDonorInfo({ ...donorInfo, phone: e.target.value })
+                        }
                       />
                     </div>
                   </div>
@@ -247,7 +310,12 @@ export default function DonateDemo() {
                       <Checkbox
                         id="anonymous"
                         checked={donorInfo.anonymous}
-                        onCheckedChange={(checked) => setDonorInfo({ ...donorInfo, anonymous: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          setDonorInfo({
+                            ...donorInfo,
+                            anonymous: checked as boolean,
+                          })
+                        }
                       />
                       <Label htmlFor="anonymous" className="text-sm">
                         Make this donation anonymous
@@ -257,7 +325,12 @@ export default function DonateDemo() {
                       <Checkbox
                         id="newsletter"
                         checked={donorInfo.newsletter}
-                        onCheckedChange={(checked) => setDonorInfo({ ...donorInfo, newsletter: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          setDonorInfo({
+                            ...donorInfo,
+                            newsletter: checked as boolean,
+                          })
+                        }
                       />
                       <Label htmlFor="newsletter" className="text-sm">
                         Subscribe to our newsletter for updates
@@ -267,7 +340,12 @@ export default function DonateDemo() {
                       <Checkbox
                         id="receipt"
                         checked={donorInfo.receipt}
-                        onCheckedChange={(checked) => setDonorInfo({ ...donorInfo, receipt: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          setDonorInfo({
+                            ...donorInfo,
+                            receipt: checked as boolean,
+                          })
+                        }
                       />
                       <Label htmlFor="receipt" className="text-sm">
                         Email me a tax receipt
@@ -285,14 +363,19 @@ export default function DonateDemo() {
                     <CreditCard className="h-5 w-5 mr-2" />
                     {isProcessing
                       ? "Processing Demo..."
-                      : `Demo Donate ₦${amount ? Number.parseInt(amount).toLocaleString() : "0"}`}
+                      : `Demo Donate ₦${
+                          amount
+                            ? Number.parseInt(amount).toLocaleString()
+                            : "0"
+                        }`}
                   </Button>
 
                   {/* Security Notice */}
                   <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
                     <Shield className="h-4 w-4" />
                     <span>
-                      Demo Mode: No actual payments will be processed. This is for demonstration purposes only.
+                      Demo Mode: No actual payments will be processed. This is
+                      for demonstration purposes only.
                     </span>
                   </div>
                 </CardContent>
@@ -321,7 +404,9 @@ export default function DonateDemo() {
                         <div className="text-2xl font-bold text-primary">
                           ₦{Number.parseInt(amount || "0").toLocaleString()}
                         </div>
-                        <div className="text-sm text-muted-foreground">Your donation</div>
+                        <div className="text-sm text-muted-foreground">
+                          Your donation
+                        </div>
                       </div>
                       <div className="text-sm space-y-2">
                         <p>• Could provide school supplies for 5 children</p>
@@ -342,12 +427,17 @@ export default function DonateDemo() {
                   {donationCampaigns.slice(0, 3).map((campaign) => (
                     <div key={campaign.id} className="space-y-2">
                       <div className="flex justify-between items-start">
-                        <h4 className="font-semibold text-sm">{campaign.title}</h4>
+                        <h4 className="font-semibold text-sm">
+                          {campaign.title}
+                        </h4>
                         <Badge variant="outline" className="text-xs">
                           {Math.round((campaign.raised / campaign.goal) * 100)}%
                         </Badge>
                       </div>
-                      <Progress value={(campaign.raised / campaign.goal) * 100} className="h-2" />
+                      <Progress
+                        value={(campaign.raised / campaign.goal) * 100}
+                        className="h-2"
+                      />
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>₦{campaign.raised.toLocaleString()} raised</span>
                         <span>₦{campaign.goal.toLocaleString()} goal</span>
@@ -391,5 +481,5 @@ export default function DonateDemo() {
         </div>
       </section>
     </div>
-  )
+  );
 }

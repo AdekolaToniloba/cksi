@@ -1,32 +1,51 @@
-"use client"
+// app/donate/page.tsx
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { donationCampaigns, donationAmounts } from "@/data/donations"
-import { motion } from "framer-motion"
-import { Heart, Shield, CreditCard, Users, Target, Gift } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { donationCampaigns, donationAmounts } from "@/data/donations";
+import { motion } from "framer-motion";
+import { Heart, Shield, CreditCard, Users, Target, Gift, AlertCircle, CheckCircle } from "lucide-react";
+import { useAlertDialog } from "@/hooks/use-alert-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 
 // Add Paystack script
 declare global {
   interface Window {
-    PaystackPop: any
+    PaystackPop: any;
   }
 }
 
 export default function DonatePage() {
-  const [donationType, setDonationType] = useState("one-time")
-  const [selectedAmount, setSelectedAmount] = useState("")
-  const [customAmount, setCustomAmount] = useState("")
-  const [selectedCampaign, setSelectedCampaign] = useState("general")
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [donationType, setDonationType] = useState("one-time");
+  const [selectedAmount, setSelectedAmount] = useState("");
+  const [customAmount, setCustomAmount] = useState("");
+  const [selectedCampaign, setSelectedCampaign] = useState("general");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isLiveMode, setIsLiveMode] = useState(false);
+  const { showAlert } = useAlertDialog();
+  
   const [donorInfo, setDonorInfo] = useState({
     firstName: "",
     lastName: "",
@@ -35,30 +54,62 @@ export default function DonatePage() {
     anonymous: false,
     newsletter: false,
     receipt: false,
-  })
+  });
 
   useEffect(() => {
     // Load Paystack script
-    const script = document.createElement("script")
-    script.src = "https://js.paystack.co/v1/inline.js"
-    script.async = true
-    document.body.appendChild(script)
+    const script = document.createElement("script");
+    script.src = "https://js.paystack.co/v1/inline.js";
+    script.async = true;
+    document.body.appendChild(script);
 
     return () => {
-      // Cleanup
-      document.body.removeChild(script)
-    }
-  }, [])
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
 
-  const amount = customAmount || selectedAmount
+  const amount = customAmount || selectedAmount;
 
   const handleDonation = async () => {
+    // Validation
     if (!amount || !donorInfo.email) {
-      alert("Please fill in all required fields")
-      return
+      showAlert(
+        "Missing Information",
+        "Please fill in all required fields including amount and email address."
+      );
+      return;
     }
 
-    setIsProcessing(true)
+    if (!donorInfo.anonymous && (!donorInfo.firstName || !donorInfo.lastName)) {
+      showAlert(
+        "Missing Information",
+        "Please provide your first and last name, or choose to donate anonymously."
+      );
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(donorInfo.email)) {
+      showAlert(
+        "Invalid Email",
+        "Please enter a valid email address."
+      );
+      return;
+    }
+
+    // Validate amount
+    if (Number(amount) < 100) {
+      showAlert(
+        "Invalid Amount",
+        "The minimum donation amount is ₦100."
+      );
+      return;
+    }
+
+    setIsProcessing(true);
 
     try {
       // Create donation record
@@ -69,44 +120,60 @@ export default function DonatePage() {
         },
         body: JSON.stringify({
           amount: Number(amount),
-          donor_name: donorInfo.anonymous ? null : `${donorInfo.firstName} ${donorInfo.lastName}`,
+          donor_name: donorInfo.anonymous
+            ? null
+            : `${donorInfo.firstName} ${donorInfo.lastName}`,
           donor_email: donorInfo.email,
           donor_phone: donorInfo.phone,
           campaign_id: selectedCampaign,
           is_anonymous: donorInfo.anonymous,
           donation_type: donationType,
+          wants_receipt: donorInfo.receipt,
+          wants_newsletter: donorInfo.newsletter,
         }),
-      })
+      });
 
       // Check if response is JSON
-      const contentType = response.headers.get("content-type")
+      const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server returned non-JSON response. Please check your configuration.")
+        throw new Error(
+          "Server configuration error. Please contact support."
+        );
       }
 
-      const donation = await response.json()
+      const donation = await response.json();
 
       if (!response.ok) {
-        throw new Error(donation.error || "Failed to create donation")
+        throw new Error(donation.error || "Failed to create donation");
       }
 
-      // Check if Paystack is available
-      if (!process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY) {
-        alert("Payment processing is not configured. Please contact support.")
-        setIsProcessing(false)
-        return
+      // Check if Paystack public key is available
+      const paystackKey = isLiveMode 
+        ? "pk_live_22136df452c7a1945e8fd568af64c5dee1197efc" // Your live key
+        : process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY; // Test key
+
+      if (!paystackKey) {
+        showAlert(
+          "Configuration Error", 
+          "Payment processing is not configured. Please contact support."
+        );
+        setIsProcessing(false);
+        return;
       }
 
       // Check if PaystackPop is loaded
       if (!window.PaystackPop) {
-        alert("Payment system is loading. Please try again in a moment.")
-        setIsProcessing(false)
-        return
+        showAlert(
+          "Loading Error",
+          "Payment system is still loading. Please try again in a moment."
+        );
+        setIsProcessing(false);
+        return;
       }
 
       // Initialize Paystack
       const handler = window.PaystackPop.setup({
-        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+        key: paystackKey,
         email: donorInfo.email,
         amount: Number(amount) * 100, // Paystack expects amount in kobo
         currency: "NGN",
@@ -114,24 +181,41 @@ export default function DonatePage() {
         metadata: {
           donation_id: donation.id,
           campaign_id: selectedCampaign,
-          donor_name: donorInfo.anonymous ? "Anonymous" : `${donorInfo.firstName} ${donorInfo.lastName}`,
+          donor_name: donorInfo.anonymous
+            ? "Anonymous"
+            : `${donorInfo.firstName} ${donorInfo.lastName}`,
+          custom_fields: [
+            {
+              display_name: "Donation Type",
+              variable_name: "donation_type",
+              value: donationType
+            }
+          ]
         },
         callback: (response: any) => {
           // Payment successful
-          verifyPayment(response.reference, donation.id)
+          verifyPayment(response.reference, donation.id);
         },
         onClose: () => {
-          setIsProcessing(false)
+          setIsProcessing(false);
+          showAlert(
+            "Payment Cancelled",
+            "Your donation was cancelled. You can try again whenever you're ready."
+          );
         },
-      })
+      });
 
-      handler.openIframe()
-    } catch (error) {
-      console.error("Error initiating payment:", error)
-      alert(`Failed to initiate payment: ${error.message}`)
-      setIsProcessing(false)
+      handler.openIframe();
+    } catch (error: unknown) {
+      console.error("Error initiating payment:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      showAlert(
+        "Payment Error",
+        `Failed to initiate payment: ${errorMessage}`
+      );
+      setIsProcessing(false);
     }
-  }
+  };
 
   const verifyPayment = async (reference: string, donationId: string) => {
     try {
@@ -144,35 +228,45 @@ export default function DonatePage() {
           reference,
           donation_id: donationId,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
-        // Redirect to success page or show success message
-        alert("Thank you for your donation! Your payment was successful.")
-        // Reset form
-        setDonorInfo({
-          firstName: "",
-          lastName: "",
-          email: "",
-          phone: "",
-          anonymous: false,
-          newsletter: false,
-          receipt: false,
-        })
-        setSelectedAmount("")
-        setCustomAmount("")
+        showAlert(
+          "Thank You! 🎉",
+          "Your donation was successful. Thank you for supporting our mission!",
+          () => {
+            // Reset form
+            setDonorInfo({
+              firstName: "",
+              lastName: "",
+              email: "",
+              phone: "",
+              anonymous: false,
+              newsletter: false,
+              receipt: false,
+            });
+            setSelectedAmount("");
+            setCustomAmount("");
+          }
+        );
       } else {
-        alert("Payment verification failed. Please contact support.")
+        showAlert(
+          "Verification Failed",
+          "Payment verification failed. Please contact support if you were charged."
+        );
       }
     } catch (error) {
-      console.error("Error verifying payment:", error)
-      alert("Payment verification failed. Please contact support.")
+      console.error("Error verifying payment:", error);
+      showAlert(
+        "Verification Error",
+        "Unable to verify payment. Please contact support."
+      );
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen">
@@ -207,12 +301,24 @@ export default function DonatePage() {
               transition={{ delay: 0.4, duration: 0.6 }}
               className="text-xl text-muted-foreground mb-8"
             >
-              Your donation helps us continue our mission of empowering families and children across Nigeria. Every
-              contribution, no matter the size, creates lasting positive change in communities.
+              Your donation helps us continue our mission of empowering families
+              and children across Nigeria. Every contribution, no matter the
+              size, creates lasting positive change in communities.
             </motion.p>
           </div>
         </div>
       </motion.section>
+
+      {/* Test Mode Alert */}
+      {!isLiveMode && (
+        <Alert className="mx-auto max-w-6xl mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Test Mode:</strong> You're currently in test mode. Use Paystack test cards for testing. 
+            Toggle to live mode for real donations.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <section className="py-16">
         <div className="container px-4 md:px-6">
@@ -226,17 +332,39 @@ export default function DonatePage() {
             >
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Gift className="h-5 w-5 text-primary" />
-                    Donation Details
-                  </CardTitle>
-                  <CardDescription>Choose your donation amount and frequency to support our programs</CardDescription>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Gift className="h-5 w-5 text-primary" />
+                        Donation Details
+                      </CardTitle>
+                      <CardDescription>
+                        Choose your donation amount and frequency to support our programs
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="live-mode" className="text-sm">
+                        {isLiveMode ? "Live" : "Test"}
+                      </Label>
+                      <Switch
+                        id="live-mode"
+                        checked={isLiveMode}
+                        onCheckedChange={setIsLiveMode}
+                      />
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Donation Type */}
                   <div>
-                    <Label className="text-base font-semibold mb-3 block">Donation Type</Label>
-                    <RadioGroup value={donationType} onValueChange={setDonationType} className="flex gap-6">
+                    <Label className="text-base font-semibold mb-3 block">
+                      Donation Type
+                    </Label>
+                    <RadioGroup
+                      value={donationType}
+                      onValueChange={setDonationType}
+                      className="flex gap-6"
+                    >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="one-time" id="one-time" />
                         <Label htmlFor="one-time">One-time</Label>
@@ -250,20 +378,30 @@ export default function DonatePage() {
 
                   {/* Amount Selection */}
                   <div>
-                    <Label className="text-base font-semibold mb-3 block">Select Amount (NGN)</Label>
+                    <Label className="text-base font-semibold mb-3 block">
+                      Select Amount (NGN)
+                    </Label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                       {donationAmounts.map((amount) => (
                         <Button
                           key={amount.value}
-                          variant={selectedAmount === amount.value.toString() ? "default" : "outline"}
+                          variant={
+                            selectedAmount === amount.value.toString()
+                              ? "default"
+                              : "outline"
+                          }
                           onClick={() => {
-                            setSelectedAmount(amount.value.toString())
-                            setCustomAmount("")
+                            setSelectedAmount(amount.value.toString());
+                            setCustomAmount("");
                           }}
                           className="h-16 flex flex-col transition-all duration-300 hover:scale-105"
                         >
-                          <span className="text-lg font-bold">₦{amount.value.toLocaleString()}</span>
-                          <span className="text-xs opacity-80">{amount.impact}</span>
+                          <span className="text-lg font-bold">
+                            ₦{amount.value.toLocaleString()}
+                          </span>
+                          <span className="text-xs opacity-80">
+                            {amount.impact}
+                          </span>
                         </Button>
                       ))}
                     </div>
@@ -277,8 +415,8 @@ export default function DonatePage() {
                         placeholder="Enter custom amount"
                         value={customAmount}
                         onChange={(e) => {
-                          setCustomAmount(e.target.value)
-                          setSelectedAmount("")
+                          setCustomAmount(e.target.value);
+                          setSelectedAmount("");
                         }}
                         className="mt-1"
                       />
@@ -287,8 +425,13 @@ export default function DonatePage() {
 
                   {/* Campaign Selection */}
                   <div>
-                    <Label className="text-base font-semibold mb-3 block">Choose Campaign</Label>
-                    <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
+                    <Label className="text-base font-semibold mb-3 block">
+                      Choose Campaign
+                    </Label>
+                    <Select
+                      value={selectedCampaign}
+                      onValueChange={setSelectedCampaign}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a campaign" />
                       </SelectTrigger>
@@ -306,23 +449,37 @@ export default function DonatePage() {
                   {/* Donor Information */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="first-name">First Name *</Label>
+                      <Label htmlFor="first-name">
+                        First Name {!donorInfo.anonymous && "*"}
+                      </Label>
                       <Input
                         id="first-name"
                         placeholder="Enter first name"
                         value={donorInfo.firstName}
-                        onChange={(e) => setDonorInfo({ ...donorInfo, firstName: e.target.value })}
-                        required
+                        onChange={(e) =>
+                          setDonorInfo({
+                            ...donorInfo,
+                            firstName: e.target.value,
+                          })
+                        }
+                        disabled={donorInfo.anonymous}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="last-name">Last Name *</Label>
+                      <Label htmlFor="last-name">
+                        Last Name {!donorInfo.anonymous && "*"}
+                      </Label>
                       <Input
                         id="last-name"
                         placeholder="Enter last name"
                         value={donorInfo.lastName}
-                        onChange={(e) => setDonorInfo({ ...donorInfo, lastName: e.target.value })}
-                        required
+                        onChange={(e) =>
+                          setDonorInfo({
+                            ...donorInfo,
+                            lastName: e.target.value,
+                          })
+                        }
+                        disabled={donorInfo.anonymous}
                       />
                     </div>
                     <div>
@@ -332,7 +489,9 @@ export default function DonatePage() {
                         type="email"
                         placeholder="Enter email address"
                         value={donorInfo.email}
-                        onChange={(e) => setDonorInfo({ ...donorInfo, email: e.target.value })}
+                        onChange={(e) =>
+                          setDonorInfo({ ...donorInfo, email: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -342,7 +501,9 @@ export default function DonatePage() {
                         id="phone"
                         placeholder="Enter phone number"
                         value={donorInfo.phone}
-                        onChange={(e) => setDonorInfo({ ...donorInfo, phone: e.target.value })}
+                        onChange={(e) =>
+                          setDonorInfo({ ...donorInfo, phone: e.target.value })
+                        }
                       />
                     </div>
                   </div>
@@ -353,7 +514,12 @@ export default function DonatePage() {
                       <Checkbox
                         id="anonymous"
                         checked={donorInfo.anonymous}
-                        onCheckedChange={(checked) => setDonorInfo({ ...donorInfo, anonymous: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          setDonorInfo({
+                            ...donorInfo,
+                            anonymous: checked as boolean,
+                          })
+                        }
                       />
                       <Label htmlFor="anonymous" className="text-sm">
                         Make this donation anonymous
@@ -363,7 +529,12 @@ export default function DonatePage() {
                       <Checkbox
                         id="newsletter"
                         checked={donorInfo.newsletter}
-                        onCheckedChange={(checked) => setDonorInfo({ ...donorInfo, newsletter: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          setDonorInfo({
+                            ...donorInfo,
+                            newsletter: checked as boolean,
+                          })
+                        }
                       />
                       <Label htmlFor="newsletter" className="text-sm">
                         Subscribe to our newsletter for updates
@@ -373,7 +544,12 @@ export default function DonatePage() {
                       <Checkbox
                         id="receipt"
                         checked={donorInfo.receipt}
-                        onCheckedChange={(checked) => setDonorInfo({ ...donorInfo, receipt: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          setDonorInfo({
+                            ...donorInfo,
+                            receipt: checked as boolean,
+                          })
+                        }
                       />
                       <Label htmlFor="receipt" className="text-sm">
                         Email me a tax receipt
@@ -391,13 +567,20 @@ export default function DonatePage() {
                     <CreditCard className="h-5 w-5 mr-2" />
                     {isProcessing
                       ? "Processing..."
-                      : `Donate ₦${amount ? Number.parseInt(amount).toLocaleString() : "0"}`}
+                      : `Donate ₦${
+                          amount
+                            ? Number.parseInt(amount).toLocaleString()
+                            : "0"
+                        } ${isLiveMode ? "" : "(Test)"}`}
                   </Button>
 
                   {/* Security Notice */}
                   <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
                     <Shield className="h-4 w-4" />
-                    <span>Your donation is secure and encrypted. We use Paystack for safe payment processing.</span>
+                    <span>
+                      Your donation is secure and encrypted. We use Paystack for
+                      safe payment processing. {!isLiveMode && "Test mode is active."}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -425,7 +608,9 @@ export default function DonatePage() {
                         <div className="text-2xl font-bold text-primary">
                           ₦{Number.parseInt(amount || "0").toLocaleString()}
                         </div>
-                        <div className="text-sm text-muted-foreground">Your donation</div>
+                        <div className="text-sm text-muted-foreground">
+                          Your donation
+                        </div>
                       </div>
                       <div className="text-sm space-y-2">
                         <p>• Could provide school supplies for 5 children</p>
@@ -446,12 +631,17 @@ export default function DonatePage() {
                   {donationCampaigns.slice(0, 3).map((campaign) => (
                     <div key={campaign.id} className="space-y-2">
                       <div className="flex justify-between items-start">
-                        <h4 className="font-semibold text-sm">{campaign.title}</h4>
+                        <h4 className="font-semibold text-sm">
+                          {campaign.title}
+                        </h4>
                         <Badge variant="outline" className="text-xs">
                           {Math.round((campaign.raised / campaign.goal) * 100)}%
                         </Badge>
                       </div>
-                      <Progress value={(campaign.raised / campaign.goal) * 100} className="h-2" />
+                      <Progress
+                        value={(campaign.raised / campaign.goal) * 100}
+                        className="h-2"
+                      />
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>₦{campaign.raised.toLocaleString()} raised</span>
                         <span>₦{campaign.goal.toLocaleString()} goal</span>
@@ -490,10 +680,31 @@ export default function DonatePage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Test Mode Info */}
+              {!isLiveMode && (
+                <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <AlertCircle className="h-4 w-4 text-orange-600" />
+                      Test Mode Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm space-y-2">
+                    <p>Use these test card details:</p>
+                    <div className="font-mono text-xs bg-background p-2 rounded">
+                      <p>Card: 4084 0840 8408 4081</p>
+                      <p>CVV: 408</p>
+                      <p>Expiry: 12/30</p>
+                      <p>PIN: 0000</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </motion.div>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }

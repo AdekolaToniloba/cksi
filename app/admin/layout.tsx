@@ -1,14 +1,23 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useEffect, useState } from "react"
-import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { supabase } from "@/lib/supabase"
-import { LayoutDashboard, FileText, Users, ImageIcon, Home, DollarSign, Menu, LogOut } from "lucide-react"
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  LayoutDashboard,
+  FileText,
+  Users,
+  ImageIcon,
+  Home,
+  DollarSign,
+  Menu,
+  LogOut,
+} from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -17,90 +26,57 @@ const navigation = [
   { name: "Gallery", href: "/admin/gallery", icon: ImageIcon },
   { name: "Homepage", href: "/admin/homepage", icon: Home },
   { name: "Donations", href: "/admin/donations", icon: DollarSign },
-]
+];
 
 export default function AdminLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const [user, setUser] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const router = useRouter()
-  const pathname = usePathname()
+  const { data: session, status } = useSession();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (!session) {
-        router.push("/admin/login")
-        return
-      }
-
-      // Check if user is admin
-      const { data: adminUser } = await supabase
-        .from("admin_users")
-        .select("*")
-        .eq("email", session.user.email)
-        .single()
-
-      if (!adminUser) {
-        await supabase.auth.signOut()
-        router.push("/admin/login")
-        return
-      }
-
-      setUser(session.user)
-      setIsLoading(false)
+    if (status === "unauthenticated") {
+      router.push("/admin/login");
     }
-
-    checkAuth()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_OUT" || !session) {
-        router.push("/admin/login")
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [router])
+  }, [status, router]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push("/admin/login")
-  }
+    await signOut({ callbackUrl: "/admin/login" });
+  };
 
+  // Don't apply layout to login page
   if (pathname === "/admin/login") {
-    return children
+    return children;
   }
 
-  if (isLoading) {
+  // Show loading while checking authentication
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
-  if (!user) {
-    return null
+  // Don't render layout if not authenticated
+  if (status === "unauthenticated" || !session?.user) {
+    return null;
   }
 
   const Sidebar = ({ className = "" }: { className?: string }) => (
     <div className={`flex flex-col h-full bg-muted/50 ${className}`}>
       <div className="p-6 border-b">
         <h2 className="text-lg font-semibold">CKSI Admin</h2>
-        <p className="text-sm text-muted-foreground">{user.email}</p>
+        <p className="text-sm text-muted-foreground">{session.user.email}</p>
       </div>
       <nav className="flex-1 p-4 space-y-2">
         {navigation.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = pathname === item.href;
           return (
             <Link
               key={item.name}
@@ -113,17 +89,21 @@ export default function AdminLayout({
               <item.icon className="h-4 w-4" />
               {item.name}
             </Link>
-          )
+          );
         })}
       </nav>
       <div className="p-4 border-t">
-        <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          onClick={handleSignOut}
+        >
           <LogOut className="h-4 w-4 mr-2" />
           Sign Out
         </Button>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,7 +134,8 @@ export default function AdminLayout({
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex items-center gap-x-4 lg:gap-x-6">
               <h1 className="text-lg font-semibold">
-                {navigation.find((item) => item.href === pathname)?.name || "Admin"}
+                {navigation.find((item) => item.href === pathname)?.name ||
+                  "Admin"}
               </h1>
             </div>
             <div className="ml-auto flex items-center gap-x-4 lg:gap-x-6">
@@ -173,5 +154,5 @@ export default function AdminLayout({
         </main>
       </div>
     </div>
-  )
+  );
 }

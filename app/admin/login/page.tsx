@@ -1,85 +1,64 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Shield, Mail, Lock, AlertTriangle } from "lucide-react"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Shield, Mail, Lock, AlertTriangle } from "lucide-react";
+import { signIn, getSession } from "next-auth/react";
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [configError, setConfigError] = useState("")
-  const [supabase, setSupabase] = useState<any>(null)
-  const router = useRouter()
-
-  useEffect(() => {
-    // Dynamically import and initialize Supabase to catch configuration errors
-    const initializeSupabase = async () => {
-      try {
-        const { supabase: supabaseClient } = await import("@/lib/supabase")
-        setSupabase(supabaseClient)
-      } catch (error: any) {
-        console.error("Supabase configuration error:", error)
-        setConfigError(error.message || "Failed to initialize Supabase")
-      }
-    }
-
-    initializeSupabase()
-  }, [])
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [configError, setConfigError] = useState("");
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!supabase) {
-      setError("Supabase is not properly configured. Please check your environment variables.")
-      return
-    }
-
-    setIsLoading(true)
-    setError("")
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const result = await signIn("credentials", {
         email,
         password,
-      })
+        redirect: false,
+      });
 
-      if (error) {
-        setError(error.message)
-        return
+      if (result?.error) {
+        setError("Invalid credentials");
+        return;
       }
 
-      if (data.user) {
-        // Check if user is admin
-        const { data: adminUser } = await supabase.from("admin_users").select("*").eq("email", email).single()
-
-        if (adminUser) {
-          router.push("/admin")
-        } else {
-          setError("Access denied. Admin privileges required.")
-          await supabase.auth.signOut()
-        }
+      // Check if login was successful
+      const session = await getSession();
+      if (session) {
+        router.push("/admin");
       }
-    } catch (err: any) {
-      console.error("Login error:", err)
-      setError("An unexpected error occurred: " + (err.message || "Unknown error"))
+    } catch (err) {
+      setError("An unexpected error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDemoLogin = () => {
     // For demo purposes, redirect to admin dashboard
-    router.push("/admin")
-  }
+    router.push("/admin");
+  };
 
   if (configError) {
     return (
@@ -91,13 +70,19 @@ export default function AdminLogin() {
                 <AlertTriangle className="h-8 w-8 text-red-600" />
               </div>
             </div>
-            <CardTitle className="text-2xl text-red-600">Configuration Error</CardTitle>
-            <CardDescription>Supabase is not properly configured</CardDescription>
+            <CardTitle className="text-2xl text-red-600">
+              Configuration Error
+            </CardTitle>
+            <CardDescription>
+              Supabase is not properly configured
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Alert>
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription className="text-sm">{configError}</AlertDescription>
+              <AlertDescription className="text-sm">
+                {configError}
+              </AlertDescription>
             </Alert>
 
             <div className="space-y-2 text-sm text-muted-foreground">
@@ -116,14 +101,21 @@ export default function AdminLogin() {
                     supabase.com
                   </a>
                 </li>
-                <li>Get your project URL (format: https://your-project.supabase.co)</li>
+                <li>
+                  Get your project URL (format:
+                  https://your-project.supabase.co)
+                </li>
                 <li>Get your anon key from Settings → API</li>
                 <li>Add them to your .env.local file</li>
               </ol>
             </div>
 
             <div className="pt-4 border-t">
-              <Button onClick={handleDemoLogin} variant="outline" className="w-full">
+              <Button
+                onClick={handleDemoLogin}
+                variant="outline"
+                className="w-full"
+              >
                 Continue with Demo Mode
               </Button>
               <p className="text-xs text-muted-foreground text-center mt-2">
@@ -133,7 +125,7 @@ export default function AdminLogin() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -146,7 +138,9 @@ export default function AdminLogin() {
             </div>
           </div>
           <CardTitle className="text-2xl">Admin Login</CardTitle>
-          <CardDescription>Access the CKSI admin dashboard to manage content and programs</CardDescription>
+          <CardDescription>
+            Access the CKSI admin dashboard to manage content and programs
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -186,19 +180,25 @@ export default function AdminLogin() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <Button type="submit" className="w-full" disabled={isLoading || !supabase}>
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
           <div className="mt-4 pt-4 border-t">
-            <Button onClick={handleDemoLogin} variant="outline" className="w-full">
+            <Button
+              onClick={handleDemoLogin}
+              variant="outline"
+              className="w-full"
+            >
               Demo Mode
             </Button>
-            <p className="text-xs text-muted-foreground text-center mt-2">Try the admin interface with sample data</p>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Try the admin interface with sample data
+            </p>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

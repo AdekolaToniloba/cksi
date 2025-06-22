@@ -1,0 +1,228 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth Models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  blogPosts BlogPost[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Application Models
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String
+  content     String    @db.Text
+  category    String
+  tags        String[]
+  imageUrl    String?
+  status      Status    @default(DRAFT)
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([status])
+}
+
+model Program {
+  id            String        @id @default(cuid())
+  title         String
+  slug          String        @unique
+  description   String        @db.Text
+  category      String
+  beneficiaries String
+  location      String
+  duration      String
+  startDate     DateTime
+  status        ProgramStatus @default(ACTIVE)
+  progress      Int?
+  goal          String
+  achievements  String[]
+  imageUrl      String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([status])
+}
+
+// Add these models to your existing prisma/schema.prisma
+
+model GalleryEvent {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  description String?   @db.Text
+  category    String // education, healthcare, community, events, facilities
+  location    String?
+  eventDate   DateTime?
+  coverImage  String? // Main image for the event card
+  isPublished Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relationship to media items
+  mediaItems GalleryMedia[]
+
+  @@index([category])
+  @@index([slug])
+}
+
+model GalleryMedia {
+  id          String    @id @default(cuid())
+  eventId     String
+  title       String?
+  description String?
+  mediaUrl    String // Cloudinary URL
+  mediaType   MediaType @default(IMAGE)
+  fileSize    Int? // in bytes
+  mimeType    String? // e.g., image/jpeg, video/mp4
+  width       Int?
+  height      Int?
+  duration    Int? // for videos, in seconds
+  orderIndex  Int       @default(0)
+  isPublished Boolean   @default(true)
+
+  // Cloudinary-specific fields
+  cloudinaryPublicId String? // Cloudinary public ID for management
+  cloudinaryFolder   String? // Folder path in Cloudinary
+  cloudinaryVersion  String? // Version for cache busting
+  cloudinaryFormat   String? // Original format (jpg, mp4, etc.)
+  cloudinaryTags     String[] // Tags for organization
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationship to event
+  event GalleryEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([mediaType])
+  @@index([cloudinaryPublicId])
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+// Update the existing GalleryItem model to be deprecated or remove it entirely
+// model GalleryItem {
+//   // ... existing fields (mark as deprecated in comments)
+// }
+
+model Donation {
+  id                String         @id @default(cuid())
+  donorName         String?
+  donorEmail        String
+  donorPhone        String?
+  amount            Float
+  currency          String         @default("NGN")
+  campaignId        String?
+  paymentReference  String         @unique
+  paystackReference String?
+  status            DonationStatus @default(PENDING)
+  isAnonymous       Boolean        @default(false)
+  donationType      DonationType   @default(ONE_TIME)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([donorEmail])
+  @@index([status])
+}
+
+model HomepageContent {
+  id         String   @id @default(cuid())
+  section    String
+  title      String?
+  content    String?  @db.Text
+  orderIndex Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// Enums
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+}
+
+enum ProgramStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+}
+
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum DonationType {
+  ONE_TIME
+  MONTHLY
+}

@@ -1,97 +1,161 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { supabase } from "@/lib/supabase"
-import { FileText, Users, ImageIcon, DollarSign, TrendingUp, Calendar, AlertTriangle } from "lucide-react"
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  FileText,
+  Users,
+  ImageIcon,
+  DollarSign,
+  TrendingUp,
+  Calendar,
+  AlertTriangle,
+} from "lucide-react";
+
+interface DashboardStats {
+  blogPosts: number;
+  programs: number;
+  galleryItems: number;
+  donations: number;
+  totalDonations: number;
+  recentDonations: RecentDonation[];
+}
+
+interface RecentDonation {
+  id: string;
+  donorName: string | null;
+  amount: number;
+  status: string;
+  createdAt: string;
+}
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  const [stats, setStats] = useState<DashboardStats>({
     blogPosts: 0,
     programs: 0,
     galleryItems: 0,
     donations: 0,
     totalDonations: 0,
     recentDonations: [],
-  })
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/admin/login");
+    }
+  }, [status, router]);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        // Test Supabase connection first
-        const { data: testData, error: testError } = await supabase
-          .from("admin_users")
-          .select("count", { count: "exact", head: true })
-
-        if (testError) {
-          throw new Error("Supabase connection failed. Please check your environment variables.")
-        }
-
-        // Fetch blog posts count
-        const { count: blogCount } = await supabase.from("blog_posts").select("*", { count: "exact", head: true })
-
-        // Fetch programs count
-        const { count: programsCount } = await supabase.from("programs").select("*", { count: "exact", head: true })
-
-        // Fetch gallery items count
-        const { count: galleryCount } = await supabase.from("gallery_items").select("*", { count: "exact", head: true })
-
-        // Fetch donations stats
-        const { count: donationsCount } = await supabase.from("donations").select("*", { count: "exact", head: true })
-
-        // Fetch total donation amount
-        const { data: donationSum } = await supabase.from("donations").select("amount").eq("status", "completed")
-
-        const totalAmount = donationSum?.reduce((sum, donation) => sum + Number(donation.amount), 0) || 0
-
-        // Fetch recent donations
-        const { data: recentDonations } = await supabase
-          .from("donations")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(5)
-
-        setStats({
-          blogPosts: blogCount || 0,
-          programs: programsCount || 0,
-          galleryItems: galleryCount || 0,
-          donations: donationsCount || 0,
-          totalDonations: totalAmount,
-          recentDonations: recentDonations || [],
-        })
-      } catch (error: any) {
-        console.error("Error fetching stats:", error)
-        setError(error.message || "Failed to connect to database")
-
-        // Set demo data for preview
-        setStats({
-          blogPosts: 4,
-          programs: 8,
-          galleryItems: 12,
-          donations: 25,
-          totalDonations: 1250000,
-          recentDonations: [
-            {
-              id: 1,
-              donor_name: "Anonymous",
-              amount: 50000,
-              status: "completed",
-              created_at: new Date().toISOString(),
-            },
-            { id: 2, donor_name: "John Doe", amount: 25000, status: "completed", created_at: new Date().toISOString() },
-            { id: 3, donor_name: "Jane Smith", amount: 15000, status: "pending", created_at: new Date().toISOString() },
-          ],
-        })
-      } finally {
-        setIsLoading(false)
-      }
+    if (session?.user) {
+      fetchStats();
     }
+  }, [session]);
 
-    fetchStats()
-  }, [])
+  const fetchStats = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Fetch all stats from our API endpoints
+      const [
+        blogResponse,
+        programsResponse,
+        galleryResponse,
+        donationsResponse,
+      ] = await Promise.all([
+        fetch("/api/admin/stats/blog"),
+        fetch("/api/admin/stats/programs"),
+        fetch("/api/admin/stats/gallery"),
+        fetch("/api/admin/stats/donations"),
+      ]);
+
+      if (
+        !blogResponse.ok ||
+        !programsResponse.ok ||
+        !galleryResponse.ok ||
+        !donationsResponse.ok
+      ) {
+        throw new Error("Failed to fetch dashboard statistics");
+      }
+
+      const [blogStats, programStats, galleryStats, donationStats] =
+        await Promise.all([
+          blogResponse.json(),
+          programsResponse.json(),
+          galleryResponse.json(),
+          donationsResponse.json(),
+        ]);
+
+      setStats({
+        blogPosts: blogStats.count || 0,
+        programs: programStats.count || 0,
+        galleryItems: galleryStats.count || 0,
+        donations: donationStats.count || 0,
+        totalDonations: donationStats.totalAmount || 0,
+        recentDonations: donationStats.recent || [],
+      });
+    } catch (error: any) {
+      console.error("Error fetching stats:", error);
+      setError(error.message || "Failed to connect to database");
+
+      // Set demo data for preview when there's an error
+      setStats({
+        blogPosts: 4,
+        programs: 8,
+        galleryItems: 12,
+        donations: 25,
+        totalDonations: 1250000,
+        recentDonations: [
+          {
+            id: "1",
+            donorName: "Anonymous",
+            amount: 50000,
+            status: "COMPLETED",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: "2",
+            donorName: "John Doe",
+            amount: 25000,
+            status: "COMPLETED",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: "3",
+            donorName: "Jane Smith",
+            amount: 15000,
+            status: "PENDING",
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Show loading while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (!session?.user) {
+    return null;
+  }
 
   if (isLoading) {
     return (
@@ -109,7 +173,7 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   const statCards = [
@@ -141,13 +205,15 @@ export default function AdminDashboard() {
       color: "text-orange-600",
       bgColor: "bg-orange-100",
     },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Dashboard Overview</h1>
-        <p className="text-muted-foreground">Welcome to the CKSI admin dashboard</p>
+        <p className="text-muted-foreground">
+          Welcome back, {session.user.name || session.user.email}
+        </p>
       </div>
 
       {error && (
@@ -157,10 +223,11 @@ export default function AdminDashboard() {
             <strong>Database Connection Error:</strong> {error}
             <br />
             <span className="text-sm mt-2 block">
-              Please ensure your Supabase environment variables are properly configured:
-              <br />• NEXT_PUBLIC_SUPABASE_URL
-              <br />• NEXT_PUBLIC_SUPABASE_ANON_KEY
-              <br />• SUPABASE_SERVICE_ROLE_KEY
+              Please ensure your Neon database connection is properly
+              configured:
+              <br />• DATABASE_URL in .env.local
+              <br />• Prisma client is generated: npx prisma generate
+              <br />• Database is accessible: npx prisma db push
             </span>
           </AlertDescription>
         </Alert>
@@ -173,7 +240,9 @@ export default function AdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {stat.title}
+                  </p>
                   <p className="text-2xl font-bold">{stat.value}</p>
                 </div>
                 <div className={`p-3 rounded-full ${stat.bgColor}`}>
@@ -196,19 +265,27 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Total Donations</span>
+              <span className="text-sm text-muted-foreground">
+                Total Donations
+              </span>
               <span className="font-semibold">{stats.donations}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Active Programs</span>
+              <span className="text-sm text-muted-foreground">
+                Active Programs
+              </span>
               <span className="font-semibold">{stats.programs}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Published Posts</span>
+              <span className="text-sm text-muted-foreground">
+                Published Posts
+              </span>
               <span className="font-semibold">{stats.blogPosts}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Gallery Photos</span>
+              <span className="text-sm text-muted-foreground">
+                Gallery Photos
+              </span>
               <span className="font-semibold">{stats.galleryItems}</span>
             </div>
           </CardContent>
@@ -224,26 +301,33 @@ export default function AdminDashboard() {
           <CardContent>
             {stats.recentDonations.length > 0 ? (
               <div className="space-y-3">
-                {stats.recentDonations.map((donation: any, index) => (
-                  <div key={index} className="flex justify-between items-center">
+                {stats.recentDonations.map((donation) => (
+                  <div
+                    key={donation.id}
+                    className="flex justify-between items-center"
+                  >
                     <div>
-                      <p className="font-medium">{donation.donor_name || "Anonymous"}</p>
+                      <p className="font-medium">
+                        {donation.donorName || "Anonymous"}
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(donation.created_at).toLocaleDateString()}
+                        {new Date(donation.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">₦{Number(donation.amount).toLocaleString()}</p>
+                      <p className="font-semibold">
+                        ₦{donation.amount.toLocaleString()}
+                      </p>
                       <p
                         className={`text-xs ${
-                          donation.status === "completed"
+                          donation.status === "COMPLETED"
                             ? "text-green-600"
-                            : donation.status === "pending"
-                              ? "text-yellow-600"
-                              : "text-red-600"
+                            : donation.status === "PENDING"
+                            ? "text-yellow-600"
+                            : "text-red-600"
                         }`}
                       >
-                        {donation.status}
+                        {donation.status.toLowerCase()}
                       </p>
                     </div>
                   </div>
@@ -251,12 +335,14 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <p className="text-muted-foreground text-center py-4">
-                {error ? "Demo data shown - connect database to see real donations" : "No recent donations"}
+                {error
+                  ? "Demo data shown - connect database to see real donations"
+                  : "No recent donations"}
               </p>
             )}
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }

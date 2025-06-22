@@ -1,74 +1,97 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+// app/api/donations/verify/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: NextRequest) {
   try {
     // Check if environment variables are available
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (
+      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      !process.env.SUPABASE_SERVICE_ROLE_KEY
+    ) {
       return NextResponse.json(
         {
-          error: "Supabase configuration missing. Please set up environment variables.",
+          error:
+            "Supabase configuration missing. Please set up environment variables.",
         },
-        { status: 500 },
-      )
+        { status: 500 }
+      );
     }
 
     if (!process.env.PAYSTACK_SECRET_KEY) {
       return NextResponse.json(
         {
-          error: "Paystack configuration missing. Please set up environment variables.",
+          error:
+            "Paystack configuration missing. Please set up environment variables.",
         },
-        { status: 500 },
-      )
+        { status: 500 }
+      );
     }
 
-    const body = await request.json()
-    const { reference, donation_id } = body
+    const { reference, donation_id } = await request.json();
 
     if (!reference || !donation_id) {
-      return NextResponse.json({ error: "Reference and donation ID are required" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Reference and donation ID are required" },
+        { status: 400 }
+      );
     }
 
     // Verify payment with Paystack
-    const paystackResponse = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
-      headers: {
-        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-      },
-    })
+    const paystackResponse = await fetch(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        },
+      }
+    );
 
-    const paystackData = await paystackResponse.json()
+    const paystackData = await paystackResponse.json();
 
     if (!paystackData.status || paystackData.data.status !== "success") {
-      return NextResponse.json({ error: "Payment verification failed" }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: "Payment verification failed" },
+        { status: 400 }
+      );
     }
 
-    // Create Supabase client with service role key for server-side operations
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    // Create Supabase client
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
 
-    // Update donation record
-    const { data: donation, error } = await supabase
+    // Update donation status
+    const { error } = await supabase
       .from("donations")
       .update({
         status: "completed",
-        paystack_reference: reference,
-        updated_at: new Date().toISOString(),
+        payment_data: paystackData.data,
+        completed_at: new Date().toISOString(),
       })
       .eq("id", donation_id)
-      .select()
-      .single()
+      .eq("payment_reference", reference);
 
     if (error) {
-      console.error("Database error:", error)
-      return NextResponse.json({ error: "Failed to update donation record" }, { status: 500 })
+      console.error("Failed to update donation:", error);
+      return NextResponse.json(
+        { success: false, error: "Failed to update donation status" },
+        { status: 500 }
+      );
     }
+
+    // TODO: Send email receipt if requested
 
     return NextResponse.json({
       success: true,
-      donation,
-      paystack_data: paystackData.data,
-    })
+      message: "Payment verified successfully",
+    });
   } catch (error) {
-    console.error("API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Verification error:", error);
+    return NextResponse.json(
+      { success: false, error: "Server error during verification" },
+      { status: 500 }
+    );
   }
 }
