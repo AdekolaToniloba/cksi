@@ -1,33 +1,32 @@
 // app/api/donations/verify/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { prisma } from "@/lib/prisma";
+
+// Paystack API utility
+const verifyPaystackTransaction = async (
+  reference: string,
+  secretKey: string
+) => {
+  const response = await fetch(
+    `https://api.paystack.co/transaction/verify/${reference}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to verify transaction");
+  }
+
+  return response.json();
+};
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if environment variables are available
-    if (
-      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      !process.env.SUPABASE_SERVICE_ROLE_KEY
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Supabase configuration missing. Please set up environment variables.",
-        },
-        { status: 500 }
-      );
-    }
-
-    if (!process.env.PAYSTACK_SECRET_KEY) {
-      return NextResponse.json(
-        {
-          error:
-            "Paystack configuration missing. Please set up environment variables.",
-        },
-        { status: 500 }
-      );
-    }
-
     const { reference, donation_id } = await request.json();
 
     if (!reference || !donation_id) {
@@ -37,56 +36,85 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify payment with Paystack
-    const paystackResponse = await fetch(
-      `https://api.paystack.co/transaction/verify/${reference}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-        },
-      }
-    );
-
-    const paystackData = await paystackResponse.json();
-
-    if (!paystackData.status || paystackData.data.status !== "success") {
+    // Check if Paystack secret key is available
+    const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
+    if (!paystackSecretKey) {
       return NextResponse.json(
-        { success: false, error: "Payment verification failed" },
-        { status: 400 }
-      );
-    }
-
-    // Create Supabase client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
-
-    // Update donation status
-    const { error } = await supabase
-      .from("donations")
-      .update({
-        status: "completed",
-        payment_data: paystackData.data,
-        completed_at: new Date().toISOString(),
-      })
-      .eq("id", donation_id)
-      .eq("payment_reference", reference);
-
-    if (error) {
-      console.error("Failed to update donation:", error);
-      return NextResponse.json(
-        { success: false, error: "Failed to update donation status" },
+        { error: "Paystack configuration missing" },
         { status: 500 }
       );
     }
 
-    // TODO: Send email receipt if requested
+    // Initialize Paystack verification
+    try {
+      // Verify payment with Paystack
+      const verification = await verifyPaystackTransaction(
+        reference,
+        paystackSecretKey
+      );
 
-    return NextResponse.json({
-      success: true,
-      message: "Payment verified successfully",
-    });
+      if (!verification.status || verification.data.status !== "success") {
+        // Update donation status to failed
+        await prisma.donation.update({
+          where: { id: donation_id },
+          data: {
+            status: "FAILED",
+            paystackReference: reference,
+          },
+        });
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Payment verification failed",
+            data: verification.data,
+          },
+          { status: 400 }
+        );
+      }
+
+      // Update donation status to completed
+      await prisma.donation.update({
+        where: { id: donation_id },
+        data: {
+          status: "COMPLETED",
+          paystackReference: reference,
+        },
+      });
+
+      // TODO: Send email receipt if requested
+      // TODO: Subscribe to newsletter if requested
+
+      return NextResponse.json({
+        success: true,
+        message: "Payment verified successfully",
+        data: {
+          amount: verification.data.amount / 100, // Convert from kobo to naira
+          reference: verification.data.reference,
+          status: verification.data.status,
+          paid_at: verification.data.paid_at,
+        },
+      });
+    } catch (paystackError: any) {
+      console.error("Paystack verification error:", paystackError);
+
+      // Update donation status to failed
+      await prisma.donation.update({
+        where: { id: donation_id },
+        data: {
+          status: "FAILED",
+          paystackReference: reference,
+        },
+      });
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: paystackError.message || "Payment verification failed",
+        },
+        { status: 400 }
+      );
+    }
   } catch (error) {
     console.error("Verification error:", error);
     return NextResponse.json(

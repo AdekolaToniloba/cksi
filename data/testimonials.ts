@@ -4,7 +4,7 @@ export const testimonials = [
     role: "Mother of 3",
     location: "Kano State",
     quote:
-      "CKSI changed our lives completely. My children now attend school regularly, and we have access to healthcare that we never had before. I'm forever grateful.",
+      "CKSI interventions has helped in shaping the way I treat my son who has the disorder. I take him for regular check- ups and take him for prompt treatment.",
     image: "/placeholder.svg?height=150&width=150",
   },
   {
@@ -12,15 +12,14 @@ export const testimonials = [
     role: "Community Leader",
     location: "Enugu State",
     quote:
-      "The impact CKSI has made in our community is remarkable. They don't just provide aid; they empower us to build a better future for our children.",
+      "CKSI has intervened when I needed someone to talk to during my crises.",
     image: "/placeholder.svg?height=150&width=150",
   },
   {
     name: "Fatima Abdullahi",
     role: "Program Beneficiary",
     location: "Kaduna State",
-    quote:
-      "Through CKSI's education program, I was able to complete my secondary education and now I'm studying nursing. They believed in me when no one else did.",
+    quote: "CKSI assisted in getting my medications when I am low on cash.",
     image: "/placeholder.svg?height=150&width=150",
   },
   {
@@ -28,7 +27,7 @@ export const testimonials = [
     role: "Local Pastor",
     location: "Lagos State",
     quote:
-      "CKSI's family counseling program has helped restore many broken homes in our community. Their approach is both professional and compassionate.",
+      "I was able to know my genotype during CKSI free genotype testing in my school, this will inform my decision in choosing my future partner ",
     image: "/placeholder.svg?height=150&width=150",
   },
-]
+];

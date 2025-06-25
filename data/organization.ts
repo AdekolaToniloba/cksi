@@ -1,65 +1,63 @@
 export const organizationInfo = {
   mission:
-    "To empower families and children across Nigeria through comprehensive education, healthcare, and community development programs that create lasting positive change.",
+    "To create awareness on sickle cell disorder and fill the gap in knowledge on treatment and care while advocating for better and improved treatment for persons with sickle cell disorder across Nigeria.",
   vision:
-    "A Nigeria where every family has access to quality education, healthcare, and opportunities for growth and development.",
+    "A Nigeria where every person has access to comprehensive sickle cell education, early detection, proper treatment, and compassionate care regardless of their location or economic status.",
   values: [
     "Compassion and Empathy",
     "Transparency and Accountability",
     "Community-Centered Approach",
-    "Sustainable Development",
+    "Evidence-Based Healthcare",
     "Cultural Sensitivity",
   ],
-  founded: "2018",
-  beneficiaries: "10,000+",
-  programs: "15+",
+  founded: "2010",
+  beneficiaries: "15,000+",
+  programs: "8+",
   history: [
     {
-      year: "2018",
+      year: "2010",
       title: "Foundation Established",
       description:
-        "CKSI was founded by a group of passionate individuals committed to addressing the challenges facing Nigerian families and children.",
-    },
-    {
-      year: "2019",
-      title: "First Education Program",
-      description:
-        "Launched our flagship education support program, providing scholarships and school supplies to 200 children in Lagos State.",
+        "CKSI was founded and registered with the Corporate Affairs Commission to create awareness on sickle cell disorder and fill the gap in knowledge on treatment and care. Initial services included advocacy for better treatment, genotype testing in rural and urban areas, collaboration with other NGOs, and supporting hospitals with medications.",
     },
     {
       year: "2020",
-      title: "Healthcare Initiative Launch",
+      title: "Community Advocacy Expansion",
       description:
-        "Expanded our services to include healthcare programs, conducting free medical outreaches in rural communities.",
+        "Intensified advocacy efforts in communities focusing on treatment and care for persons living with sickle cell disorder. Celebrated the first World Sickle Cell Day, raising awareness and educating communities about the condition.",
     },
     {
       year: "2021",
-      title: "Family Counseling Services",
+      title: "Youth Counseling Initiative",
       description:
-        "Introduced professional counseling services to support couples and families facing relationship challenges.",
+        "Launched comprehensive information and counseling programs for youths on genotype compatibility to prevent sickle cell disorder. Expanded support for persons with sickle cell disorder in procuring medications and celebrated International Day of Sickle Cell.",
     },
     {
       year: "2022",
-      title: "Multi-State Expansion",
-      description: "Extended our programs to 10 states across Nigeria, reaching over 5,000 beneficiaries.",
+      title: "Genetic Counseling Services",
+      description:
+        "Introduced professional genetic counseling services for youths focusing on genotype compatibility education. Continued annual celebration of International Day of Sickle Cell to raise global awareness.",
     },
     {
       year: "2023",
-      title: "Digital Platform Launch",
-      description: "Launched our digital platform to better serve our community and streamline program delivery.",
+      title: "Program Consolidation",
+      description:
+        "Consolidated and strengthened existing programs while expanding reach to more communities across Nigeria. Enhanced partnerships with healthcare facilities and other organizations working on sickle cell interventions.",
     },
     {
       year: "2024",
-      title: "Partnership Growth",
-      description: "Formed strategic partnerships with international organizations to expand our impact and resources.",
+      title: "Digital Innovation",
+      description:
+        "Continued program expansion and improved service delivery methods. Prepared for digital transformation to reach wider populations across Nigeria with sickle cell education and support services.",
     },
     {
       year: "2025",
-      title: "10,000 Lives Impacted",
-      description: "Reached the milestone of positively impacting over 10,000 lives across Nigeria.",
+      title: "Website Launch",
+      description:
+        "Launched comprehensive website to reach more population on CKSI's work and interventions on sickle cell disorder. Enhanced digital presence to provide better access to resources, information, and support services for the sickle cell community.",
     },
   ],
-}
+};
 
 export const teamMembers = [
   {
@@ -104,7 +102,7 @@ export const teamMembers = [
     image: "/placeholder.svg?height=200&width=200",
     experience: 6,
   },
-]
+];
 
 export const boardMembers = [
   {
@@ -143,4 +141,4 @@ export const boardMembers = [
     background: "Public Health Specialist, WHO",
     image: "/placeholder.svg?height=150&width=150",
   },
-]
+];
