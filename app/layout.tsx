@@ -3,11 +3,15 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/header";
+import { Toast } from "@/components/ui/toast";
 import { Footer } from "@/components/footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GlobalAlertDialog } from "@/components/global-alert-dialog";
 import { Providers } from "@/components/providers/session-provider";
+import { CookieProvider } from "@/components/cookies/CookieProvider";
+import { Navbar } from "@/components/layout/header/navbar";
 import Script from "next/script";
+// import { CookieConsentManager } from "@/components/cookies/cookieConsentManager";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,19 +46,25 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-            <GlobalAlertDialog />
-          </ThemeProvider>
+          <CookieProvider>
+            {/* <CookieConsentManager /> */}
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <div className="flex flex-col min-h-screen">
+                {/* <Header /> */}
+                <Navbar />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </div>
+              <GlobalAlertDialog />
+              <Toast />
+            </ThemeProvider>
+          </CookieProvider>
+
           <Script
             src="https://js.paystack.co/v1/inline.js"
             strategy="beforeInteractive"
