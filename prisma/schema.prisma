@@ -63,23 +63,42 @@ model VerificationToken {
 
 // Application Models
 model BlogPost {
-  id          String    @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
-  slug        String    @unique
+  slug        String     @unique
   excerpt     String
-  content     String    @db.Text
+  content     String     @db.Text
   category    String
   tags        String[]
   imageUrl    String?
-  status      Status    @default(DRAFT)
+  status      PostStatus @default(DRAFT) // Changed from Status to PostStatus
   authorId    String
-  author      User      @relation(fields: [authorId], references: [id])
+  author      User       @relation(fields: [authorId], references: [id])
   publishedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   @@index([slug])
   @@index([status])
+}
+
+// Add Hero Carousel model for the new hero section
+model HeroCarousel {
+  id           String    @id @default(cuid())
+  title        String
+  description  String    @db.Text
+  ctaText      String
+  ctaLink      String
+  mediaUrl     String
+  mediaType    MediaType @default(IMAGE)
+  cloudinaryId String?
+  orderIndex   Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([orderIndex])
+  @@index([isActive])
 }
 
 model Program {
@@ -205,7 +224,7 @@ enum Role {
   ADMIN
 }
 
-enum Status {
+enum PostStatus {
   DRAFT
   PUBLISHED
 }

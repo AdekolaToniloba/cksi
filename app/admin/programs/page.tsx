@@ -1,90 +1,118 @@
-"use client"
+// app/admin/programs/page.tsx
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
-import { supabase } from "@/lib/supabase"
-import { Plus, Search, Edit, Trash2, Eye, MapPin, Calendar, Users } from "lucide-react"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { ProgramService } from "@/lib/db/programs";
+import { Program, ProgramStatus } from "@/types";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  Calendar,
+  MapPin,
+  Users,
+} from "lucide-react";
+import { formatDate, formatRelativeTime } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/monitoring/logger";
 
 export default function ProgramsManagement() {
-  const [programs, setPrograms] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ProgramStatus | "ALL">(
+    "ALL"
+  );
+  const { toast } = useToast();
 
   useEffect(() => {
-    fetchPrograms()
-  }, [])
+    fetchPrograms();
+  }, [statusFilter]);
 
   const fetchPrograms = async () => {
     try {
-      const { data, error } = await supabase.from("programs").select("*").order("created_at", { ascending: false })
-
-      if (error) throw error
-      setPrograms(data || [])
+      setIsLoading(true);
+      const filter = statusFilter === "ALL" ? undefined : statusFilter;
+      const data = await ProgramService.getPrograms({ status: filter });
+      setPrograms(data);
     } catch (error) {
-      console.error("Error fetching programs:", error)
+      logger.error("Failed to fetch programs", { error });
+      toast({
+        title: "Error",
+        description: "Failed to load programs. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this program?")) return
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
 
     try {
-      const { error } = await supabase.from("programs").delete().eq("id", id)
-
-      if (error) throw error
-      fetchPrograms()
+      await ProgramService.deleteProgram(id);
+      setPrograms(programs.filter((p) => p.id !== id));
+      toast({
+        title: "Success",
+        description: "Program deleted successfully.",
+      });
     } catch (error) {
-      console.error("Error deleting program:", error)
+      logger.error("Failed to delete program", { error, programId: id });
+      toast({
+        title: "Error",
+        description: "Failed to delete program. Please try again.",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const filteredPrograms = programs.filter(
     (program) =>
       program.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      program.category.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+      program.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      program.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getStatusColor = (status: ProgramStatus) => {
+    switch (status) {
+      case ProgramStatus.ACTIVE:
+        return "bg-green-100 text-green-800";
+      case ProgramStatus.COMPLETED:
+        return "bg-blue-100 text-blue-800";
+      case ProgramStatus.PAUSED:
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Programs</h1>
-          <Button disabled>
-            <Plus className="h-4 w-4 mr-2" />
-            New Program
-          </Button>
-        </div>
-        <div className="grid gap-4">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="animate-pulse space-y-2">
-                  <div className="h-4 bg-muted rounded w-3/4"></div>
-                  <div className="h-3 bg-muted rounded w-1/2"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6" data-testid="programs-management">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Programs</h1>
-          <p className="text-muted-foreground">Manage your organization's programs</p>
+          <h1 className="text-3xl font-bold">Programs Management</h1>
+          <p className="text-muted-foreground">
+            Manage your organization's programs and initiatives
+          </p>
         </div>
-        <Button asChild>
+        <Button asChild data-testid="create-program-button">
           <Link href="/admin/programs/new">
             <Plus className="h-4 w-4 mr-2" />
             New Program
@@ -92,103 +120,130 @@ export default function ProgramsManagement() {
         </Button>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search programs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search programs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+                data-testid="search-programs"
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) =>
+                setStatusFilter(e.target.value as ProgramStatus | "ALL")
+              }
+              className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              data-testid="status-filter"
+            >
+              <option value="ALL">All Status</option>
+              <option value={ProgramStatus.ACTIVE}>Active</option>
+              <option value={ProgramStatus.COMPLETED}>Completed</option>
+              <option value={ProgramStatus.PAUSED}>Paused</option>
+            </select>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="grid gap-6">
-        {filteredPrograms.map((program) => (
-          <Card key={program.id}>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold">{program.title}</h3>
-                    <Badge variant={program.status === "active" ? "default" : "secondary"}>{program.status}</Badge>
-                    <Badge variant="outline">{program.category}</Badge>
-                  </div>
-                  <p className="text-muted-foreground mb-4 line-clamp-2">{program.description}</p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Users className="h-4 w-4" />
-                      <span>{program.beneficiaries} beneficiaries</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      <span>{program.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <span>Started: {new Date(program.start_date).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-
-                  {program.progress && (
-                    <div className="mb-4">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Progress</span>
-                        <span>{program.progress}%</span>
-                      </div>
-                      <Progress value={program.progress} className="h-2" />
-                    </div>
-                  )}
-
-                  <div className="text-sm text-muted-foreground">
-                    <span>Goal: {program.goal}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/programs/${program.slug}`} target="_blank">
-                      <Eye className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/admin/programs/edit/${program.id}`}>
-                      <Edit className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(program.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredPrograms.length === 0 && (
+      {/* Programs Grid */}
+      {filteredPrograms.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-semibold mb-2">No programs found</h3>
+            <h3 className="text-lg font-medium mb-2">No programs found</h3>
             <p className="text-muted-foreground mb-4">
-              {searchQuery ? "Try adjusting your search terms" : "Get started by creating your first program"}
+              {searchQuery
+                ? "Try adjusting your search terms"
+                : "Get started by creating your first program"}
             </p>
             <Button asChild>
-              <Link href="/admin/programs/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Program
-              </Link>
+              <Link href="/admin/programs/new">Create Program</Link>
             </Button>
           </CardContent>
         </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredPrograms.map((program) => (
+            <Card
+              key={program.id}
+              className="group hover:shadow-md transition-shadow"
+            >
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <Badge className={getStatusColor(program.status)}>
+                    {program.status}
+                  </Badge>
+                  <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link href={`/programs/${program.slug}`} target="_blank">
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link href={`/admin/programs/edit/${program.id}`}>
+                        <Edit className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(program.id, program.title)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <CardTitle className="line-clamp-2">{program.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {program.description}
+                </p>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center text-muted-foreground">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Started {formatDate(program.startDate)}
+                  </div>
+                  <div className="flex items-center text-muted-foreground">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    {program.location}
+                  </div>
+                  <div className="flex items-center text-muted-foreground">
+                    <Users className="h-4 w-4 mr-2" />
+                    {program.beneficiaries}
+                  </div>
+                </div>
+
+                {program.progress && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>Progress</span>
+                      <span>{program.progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full transition-all"
+                        style={{ width: `${program.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-xs text-muted-foreground">
+                  Updated {formatRelativeTime(program.updatedAt)}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
-  )
+  );
 }
