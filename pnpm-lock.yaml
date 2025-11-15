@@ -22,7 +22,7 @@ importers:
         version: 1.4.0
       '@hookform/resolvers':
         specifier: ^3.9.1
-        version: 3.10.0(react-hook-form@@hookform+resolvers+zod)
+        version: 3.10.0(react-hook-form@7.66.0(react@19.2.0))
       '@neondatabase/serverless':
         specifier: ^1.0.1
         version: 1.0.2
@@ -183,8 +183,8 @@ importers:
         specifier: ^19
         version: 19.2.0(react@19.2.0)
       react-hook-form:
-        specifier: '@hookform/resolvers/zod'
-        version: link:@hookform/resolvers/zod
+        specifier: ^7.54.1
+        version: 7.66.0(react@19.2.0)
       react-resizable-panels:
         specifier: ^2.1.7
         version: 2.1.9(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -2241,6 +2241,12 @@ packages:
     peerDependencies:
       react: ^19.2.0
 
+  react-hook-form@7.66.0:
+    resolution: {integrity: sha512-xXBqsWGKrY46ZqaHDo+ZUYiMUgi8suYu5kdrS20EG8KiL7VRQitEbNjm+UcrDYrNi1YLyfpmAeGjCZYXLT9YBw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
+
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -2648,9 +2654,9 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@hookform/resolvers@3.10.0(react-hook-form@@hookform+resolvers+zod)':
+  '@hookform/resolvers@3.10.0(react-hook-form@7.66.0(react@19.2.0))':
     dependencies:
-      react-hook-form: link:@hookform/resolvers/zod
+      react-hook-form: 7.66.0(react@19.2.0)
 
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:
@@ -4480,6 +4486,10 @@ snapshots:
     dependencies:
       react: 19.2.0
       scheduler: 0.27.0
+
+  react-hook-form@7.66.0(react@19.2.0):
+    dependencies:
+      react: 19.2.0
 
   react-is@16.13.1: {}
 
