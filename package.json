@@ -54,12 +54,12 @@
     "@types/js-cookie": "^3.0.6",
     "@types/pg": "^8.15.4",
     "autoprefixer": "^10.4.20",
-    "bcryptjs": "^3.0.2",
+    "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
-    "date-fns": "^7.54.1",
+    "date-fns": "^4.1.0",
     "embla-carousel-react": "8.5.1",
     "framer-motion": "latest",
     "input-otp": "1.4.1",
@@ -87,7 +87,7 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@types/bcryptjs": "4.1.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22",
     "@types/react": "^19",
