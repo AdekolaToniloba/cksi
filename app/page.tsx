@@ -5,6 +5,8 @@ import { RecentBlogPosts } from "@/components/recent-blog-posts";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { TestimonialsCarousel } from "@/components/testimonials-carousel";
 import { PartnerLogos } from "@/components/partner-logos";
+import { VolunteerSection } from "@/components/volunteer/volunteer-section";
+import { FeaturedEvents } from "@/components/featured-events";
 
 export default function HomePage() {
   return (
@@ -12,9 +14,12 @@ export default function HomePage() {
       <HeroSection />
       {/* <ImpactStats /> */}
       {/* <FeaturedPrograms /> */}
+      <FeaturedEvents limit={6} />
+      <VolunteerSection />
+
       <RecentBlogPosts />
-      <TestimonialsCarousel />
-      <PartnerLogos />
+      {/* <TestimonialsCarousel /> */}
+      {/* <PartnerLogos /> */}
       <NewsletterSignup />
     </main>
   );

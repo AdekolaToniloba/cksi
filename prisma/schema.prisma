@@ -188,6 +188,48 @@ enum MediaType {
 //   // ... existing fields (mark as deprecated in comments)
 // }
 
+// New Volunteer model
+model Volunteer {
+  id             String            @id @default(cuid())
+  name           String
+  email          String
+  phone          String
+  state          String
+  country        String
+  capacity       VolunteerCapacity
+  additionalHelp String            @db.Text
+  receiveUpdates Boolean           @default(false)
+  status         VolunteerStatus   @default(PENDING)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([capacity])
+  @@index([createdAt])
+}
+
+enum VolunteerCapacity {
+  TEACHING
+  HEALTHCARE
+  MENTORSHIP
+  FUNDRAISING
+  EVENT_PLANNING
+  TECHNOLOGY
+  ADMINISTRATION
+  COMMUNITY_OUTREACH
+  SKILLED_LABOR
+  OTHER
+}
+
+enum VolunteerStatus {
+  PENDING
+  REVIEWED
+  APPROVED
+  CONTACTED
+  DECLINED
+}
+
 model Donation {
   id                String         @id @default(cuid())
   donorName         String?

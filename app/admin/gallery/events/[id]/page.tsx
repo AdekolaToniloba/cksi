@@ -8,7 +8,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -22,6 +21,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   ArrowLeft,
@@ -29,15 +30,15 @@ import {
   Search,
   Edit,
   Trash2,
-  Calendar,
-  MapPin,
   AlertTriangle,
   Images,
   Play,
-  Download,
-  ExternalLink,
+  Star,
+  StarOff,
+  Check,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
 interface GalleryEvent {
   id: string;
@@ -82,6 +83,8 @@ export default function EventMediaViewer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [showCoverImageDialog, setShowCoverImageDialog] = useState(false);
+  const [settingCoverImage, setSettingCoverImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const mediaTypes = [
@@ -160,25 +163,37 @@ export default function EventMediaViewer() {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
-        {
-          id: "2",
-          title: "Construction Progress",
-          description: "Timelapse of the construction process",
-          mediaUrl: "/placeholder.svg",
-          mediaType: "VIDEO",
-          fileSize: 25600000,
-          mimeType: "video/mp4",
-          width: 1920,
-          height: 1080,
-          duration: 120,
-          orderIndex: 2,
-          isPublished: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
       ]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSetCoverImage = async (mediaUrl: string) => {
+    try {
+      setSettingCoverImage(true);
+
+      const response = await fetch(`/api/admin/gallery/events/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coverImage: mediaUrl }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update cover image");
+      }
+
+      const { event: updatedEvent } = await response.json();
+      setEvent(updatedEvent);
+      setShowCoverImageDialog(false);
+
+      // Show success message
+      alert("Cover image updated successfully!");
+    } catch (error: any) {
+      console.error("Error updating cover image:", error);
+      alert("Failed to update cover image. Please try again.");
+    } finally {
+      setSettingCoverImage(false);
     }
   };
 
@@ -234,17 +249,10 @@ export default function EventMediaViewer() {
   };
 
   const formatFileSize = (bytes: number | null): string => {
-    if (!bytes) return "Unknown size";
+    if (!bytes) return "Unknown";
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
-  };
-
-  const formatDuration = (seconds: number | null): string => {
-    if (!seconds) return "";
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const filteredMedia = mediaItems.filter((item) => {
@@ -287,57 +295,47 @@ export default function EventMediaViewer() {
     );
   }
 
+  const isCoverImage = (mediaUrl: string) => event?.coverImage === mediaUrl;
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="outline" asChild>
-          <Link href="/admin/gallery">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Events
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold">{event.title}</h1>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-            <Badge variant="secondary">{event.category}</Badge>
-            {event.eventDate && (
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {new Date(event.eventDate).toLocaleDateString()}
-              </div>
-            )}
-            {event.location && (
-              <div className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {event.location}
-              </div>
-            )}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-start justify-between">
+          <Button variant="outline" asChild>
+            <Link href="/admin/gallery">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Events
+            </Link>
+          </Button>
+          <div className="flex gap-2">
+            <Button asChild>
+              <Link href={`/admin/gallery/events/${eventId}/upload`}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Media
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href={`/admin/gallery/events/edit/${eventId}`}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Event
+              </Link>
+            </Button>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button asChild>
-            <Link href={`/admin/gallery/events/${eventId}/upload`}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Media
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href={`/admin/gallery/events/edit/${eventId}`}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Event
-            </Link>
-          </Button>
+
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl font-bold">{event.title}</h1>
+            <Badge variant={event.isPublished ? "default" : "secondary"}>
+              {event.isPublished ? "Published" : "Draft"}
+            </Badge>
+          </div>
+          {event.description && (
+            <p className="text-muted-foreground">{event.description}</p>
+          )}
         </div>
       </div>
-
-      {event.description && (
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-muted-foreground">{event.description}</p>
-          </CardContent>
-        </Card>
-      )}
 
       {error && (
         <Alert variant="destructive">
@@ -351,6 +349,40 @@ export default function EventMediaViewer() {
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Cover Image Section */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Cover Image</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCoverImageDialog(true)}
+            >
+              <Star className="h-4 w-4 mr-2" />
+              Set from Media
+            </Button>
+          </div>
+          <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+            {event.coverImage ? (
+              <Image
+                src={event.coverImage}
+                alt="Cover image"
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <div className="text-center">
+                  <Images className="h-12 w-12 mx-auto mb-2" />
+                  <p className="text-sm">No cover image set</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -382,7 +414,7 @@ export default function EventMediaViewer() {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold">{mediaItems.length}</div>
-            <div className="text-sm text-muted-foreground">Total Media</div>
+            <div className="text-sm text-muted-foreground">Total</div>
           </CardContent>
         </Card>
         <Card>
@@ -412,11 +444,11 @@ export default function EventMediaViewer() {
       </div>
 
       {/* Media Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {filteredMedia.map((item) => (
           <Card
             key={item.id}
-            className="overflow-hidden group hover:shadow-lg transition-shadow"
+            className="overflow-hidden group hover:shadow-lg transition-all relative"
           >
             <div
               className="relative aspect-square cursor-pointer"
@@ -425,7 +457,7 @@ export default function EventMediaViewer() {
               {item.mediaType === "IMAGE" ? (
                 <Image
                   src={item.mediaUrl}
-                  alt={item.title || "Media item"}
+                  alt={item.title || "Media"}
                   fill
                   className="object-cover"
                   onError={(e) => {
@@ -435,56 +467,31 @@ export default function EventMediaViewer() {
                 />
               ) : (
                 <div className="w-full h-full bg-black flex items-center justify-center">
-                  <video
-                    src={item.mediaUrl}
-                    className="w-full h-full object-cover"
-                    muted
-                    onError={(e) => {
-                      const target = e.target as HTMLVideoElement;
-                      target.style.display = "none";
-                    }}
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Play className="h-12 w-12 text-white opacity-70" />
+                  <Play className="h-12 w-12 text-white opacity-70" />
+                </div>
+              )}
+
+              {/* Cover Image Indicator */}
+              {isCoverImage(item.mediaUrl) && (
+                <div className="absolute top-2 left-2">
+                  <div className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 font-medium">
+                    <Star className="h-3 w-3 fill-current" />
+                    <span>Cover</span>
                   </div>
                 </div>
               )}
 
-              {/* Media Type Badge */}
-              <div className="absolute top-2 left-2">
-                {item.mediaType === "VIDEO" ? (
-                  <Badge
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                  >
-                    <Play className="h-3 w-3" />
-                    {item.duration && formatDuration(item.duration)}
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                  >
-                    <Images className="h-3 w-3" />
-                    IMG
-                  </Badge>
-                )}
-              </div>
-
               {/* Status Badge */}
               {!item.isPublished && (
                 <div className="absolute top-2 right-2">
-                  <Badge
-                    variant="outline"
-                    className="bg-yellow-100 text-yellow-800"
-                  >
+                  <Badge variant="secondary" className="text-xs">
                     Draft
                   </Badge>
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <Button
                   variant="secondary"
                   size="sm"
@@ -492,46 +499,27 @@ export default function EventMediaViewer() {
                     e.stopPropagation();
                     toggleMediaPublished(item.id, item.isPublished);
                   }}
-                  className={
-                    item.isPublished ? "text-green-600" : "text-gray-400"
-                  }
                 >
-                  {item.isPublished ? "✓" : "○"}
+                  {item.isPublished ? "Hide" : "Publish"}
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="destructive"
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDeleteMedia(item.id);
                   }}
-                  className="text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
             </div>
 
-            {/* Media Info */}
-            <CardContent className="p-3">
-              <h4 className="font-medium text-sm line-clamp-1">
-                {item.title ||
-                  `${item.mediaType.toLowerCase()}-${item.id.slice(-4)}`}
-              </h4>
-              {item.description && (
-                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                  {item.description}
-                </p>
-              )}
-              <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
-                <span>{formatFileSize(item.fileSize)}</span>
-                {item.width && item.height && (
-                  <span>
-                    {item.width}×{item.height}
-                  </span>
-                )}
+            {item.title && (
+              <div className="p-2">
+                <p className="text-xs font-medium line-clamp-1">{item.title}</p>
               </div>
-            </CardContent>
+            )}
           </Card>
         ))}
       </div>
@@ -539,6 +527,7 @@ export default function EventMediaViewer() {
       {filteredMedia.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">
+            <Images className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No media found</h3>
             <p className="text-muted-foreground mb-4">
               {searchQuery || selectedType !== "all"
@@ -555,48 +544,88 @@ export default function EventMediaViewer() {
         </Card>
       )}
 
+      {/* Cover Image Selection Dialog */}
+      <Dialog
+        open={showCoverImageDialog}
+        onOpenChange={setShowCoverImageDialog}
+      >
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Select Cover Image</DialogTitle>
+            <DialogDescription>
+              Choose an image from your uploaded media to set as the cover image
+              for this event
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 py-4">
+            {mediaItems
+              .filter((item) => item.mediaType === "IMAGE")
+              .map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleSetCoverImage(item.mediaUrl)}
+                  disabled={settingCoverImage}
+                  className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
+                    isCoverImage(item.mediaUrl)
+                      ? "border-yellow-500 ring-2 ring-yellow-500"
+                      : "border-transparent hover:border-primary"
+                  }`}
+                >
+                  <Image
+                    src={item.mediaUrl}
+                    alt={item.title || "Media"}
+                    fill
+                    className="object-cover"
+                  />
+                  {isCoverImage(item.mediaUrl) && (
+                    <div className="absolute inset-0 bg-yellow-500/20 flex items-center justify-center">
+                      <Check className="h-8 w-8 text-yellow-500" />
+                    </div>
+                  )}
+                </button>
+              ))}
+          </div>
+
+          {mediaItems.filter((item) => item.mediaType === "IMAGE").length ===
+            0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              <Images className="h-12 w-12 mx-auto mb-4" />
+              <p>No images available. Upload some images first.</p>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCoverImageDialog(false)}
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Media Preview Dialog */}
       <Dialog
         open={!!selectedMedia}
         onOpenChange={() => setSelectedMedia(null)}
       >
-        <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogContent className="max-w-4xl">
           {selectedMedia && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center justify-between">
-                  <span>
-                    {selectedMedia.title ||
-                      `Media ${selectedMedia.id.slice(-4)}`}
-                  </span>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <a
-                        href={selectedMedia.mediaUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Open
-                      </a>
-                    </Button>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={selectedMedia.mediaUrl} download>
-                        <Download className="h-3 w-3 mr-1" />
-                        Download
-                      </a>
-                    </Button>
-                  </div>
+                <DialogTitle>
+                  {selectedMedia.title || `Media ${selectedMedia.id.slice(-4)}`}
                 </DialogTitle>
               </DialogHeader>
 
               <div className="space-y-4">
-                {/* Media Preview */}
                 <div className="relative aspect-video bg-black rounded overflow-hidden">
                   {selectedMedia.mediaType === "IMAGE" ? (
                     <Image
                       src={selectedMedia.mediaUrl}
-                      alt={selectedMedia.title || "Media preview"}
+                      alt={selectedMedia.title || "Media"}
                       fill
                       className="object-contain"
                     />
@@ -609,48 +638,54 @@ export default function EventMediaViewer() {
                   )}
                 </div>
 
-                {/* Media Details */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                {selectedMedia.description && (
+                  <p className="text-sm text-muted-foreground">
+                    {selectedMedia.description}
+                  </p>
+                )}
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <div className="font-medium text-muted-foreground">
-                      Type
-                    </div>
-                    <div>{selectedMedia.mediaType}</div>
+                    <span className="text-muted-foreground">Type:</span>{" "}
+                    {selectedMedia.mediaType}
                   </div>
                   <div>
-                    <div className="font-medium text-muted-foreground">
-                      Size
-                    </div>
-                    <div>{formatFileSize(selectedMedia.fileSize)}</div>
+                    <span className="text-muted-foreground">Size:</span>{" "}
+                    {formatFileSize(selectedMedia.fileSize)}
                   </div>
                   {selectedMedia.width && selectedMedia.height && (
                     <div>
-                      <div className="font-medium text-muted-foreground">
-                        Dimensions
-                      </div>
-                      <div>
-                        {selectedMedia.width}×{selectedMedia.height}
-                      </div>
-                    </div>
-                  )}
-                  {selectedMedia.duration && (
-                    <div>
-                      <div className="font-medium text-muted-foreground">
-                        Duration
-                      </div>
-                      <div>{formatDuration(selectedMedia.duration)}</div>
+                      <span className="text-muted-foreground">Dimensions:</span>{" "}
+                      {selectedMedia.width}×{selectedMedia.height}
                     </div>
                   )}
                 </div>
 
-                {selectedMedia.description && (
-                  <div>
-                    <div className="font-medium text-muted-foreground mb-1">
-                      Description
-                    </div>
-                    <p className="text-sm">{selectedMedia.description}</p>
-                  </div>
-                )}
+                <div className="flex gap-2 pt-4">
+                  {selectedMedia.mediaType === "IMAGE" && (
+                    <Button
+                      onClick={() => {
+                        handleSetCoverImage(selectedMedia.mediaUrl);
+                        setSelectedMedia(null);
+                      }}
+                      variant="outline"
+                    >
+                      <Star className="h-4 w-4 mr-2" />
+                      Set as Cover Image
+                    </Button>
+                  )}
+                  <Button
+                    onClick={() =>
+                      toggleMediaPublished(
+                        selectedMedia.id,
+                        selectedMedia.isPublished
+                      )
+                    }
+                    variant="outline"
+                  >
+                    {selectedMedia.isPublished ? "Unpublish" : "Publish"}
+                  </Button>
+                </div>
               </div>
             </>
           )}

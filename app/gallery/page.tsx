@@ -5,8 +5,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -15,21 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Search,
-  Calendar,
-  MapPin,
-  Images,
-  Play,
-  ExternalLink,
-  Filter,
-} from "lucide-react";
+import { Search, Images as ImagesIcon, Filter, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface GalleryEvent {
   id: string;
@@ -44,18 +30,6 @@ interface GalleryEvent {
   mediaCount: number;
   imageCount: number;
   videoCount: number;
-  featuredMedia: MediaItem[];
-}
-
-interface MediaItem {
-  id: string;
-  title: string | null;
-  description: string | null;
-  mediaUrl: string;
-  mediaType: "IMAGE" | "VIDEO";
-  width: number | null;
-  height: number | null;
-  duration: number | null;
 }
 
 export default function GalleryPage() {
@@ -63,7 +37,6 @@ export default function GalleryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedEvent, setSelectedEvent] = useState<GalleryEvent | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const categories = [
@@ -100,7 +73,7 @@ export default function GalleryPage() {
       setEvents([
         {
           id: "1",
-          title: "School Construction - Phase 1",
+          title: "School Construction Project",
           slug: "school-construction-phase-1",
           description:
             "Building new classroom blocks in Lagos community to provide quality education for children",
@@ -112,28 +85,6 @@ export default function GalleryPage() {
           mediaCount: 25,
           imageCount: 20,
           videoCount: 5,
-          featuredMedia: [
-            {
-              id: "1",
-              title: "Foundation Work",
-              description: "Laying the foundation for the new classroom",
-              mediaUrl: "/placeholder.svg",
-              mediaType: "IMAGE",
-              width: 1920,
-              height: 1080,
-              duration: null,
-            },
-            {
-              id: "2",
-              title: "Construction Progress",
-              description: "Timelapse of the construction process",
-              mediaUrl: "/placeholder.svg",
-              mediaType: "VIDEO",
-              width: 1920,
-              height: 1080,
-              duration: 120,
-            },
-          ],
         },
         {
           id: "2",
@@ -149,7 +100,6 @@ export default function GalleryPage() {
           mediaCount: 18,
           imageCount: 15,
           videoCount: 3,
-          featuredMedia: [],
         },
         {
           id: "3",
@@ -165,7 +115,6 @@ export default function GalleryPage() {
           mediaCount: 12,
           imageCount: 10,
           videoCount: 2,
-          featuredMedia: [],
         },
       ]);
     } finally {
@@ -183,29 +132,22 @@ export default function GalleryPage() {
     return matchesCategory && matchesSearch;
   });
 
-  const formatDuration = (seconds: number | null): string => {
-    if (!seconds) return "";
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
         <div className="container py-24">
           <div className="text-center mb-16">
-            <div className="h-8 bg-muted rounded w-48 mx-auto mb-4 animate-pulse"></div>
-            <div className="h-4 bg-muted rounded w-96 mx-auto animate-pulse"></div>
+            <div className="h-12 bg-muted/50 rounded-lg w-64 mx-auto mb-6 animate-pulse"></div>
+            <div className="h-6 bg-muted/50 rounded-lg w-96 mx-auto animate-pulse"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[...Array(6)].map((_, i) => (
               <Card key={i} className="overflow-hidden">
-                <div className="aspect-video bg-muted animate-pulse"></div>
-                <CardContent className="p-6">
-                  <div className="h-4 bg-muted rounded w-3/4 mb-2 animate-pulse"></div>
-                  <div className="h-3 bg-muted rounded w-1/2 animate-pulse"></div>
-                </CardContent>
+                <div className="aspect-[4/3] bg-muted/50 animate-pulse"></div>
+                <div className="p-6">
+                  <div className="h-6 bg-muted/50 rounded w-3/4 mb-3 animate-pulse"></div>
+                  <div className="h-4 bg-muted/50 rounded w-1/4 animate-pulse"></div>
+                </div>
               </Card>
             ))}
           </div>
@@ -215,39 +157,49 @@ export default function GalleryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
       <div className="container py-24">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             Our Impact in{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-secondary">
               Pictures
             </span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Explore our journey through photos and videos showcasing the lives
-            we've touched and communities we've transformed across Nigeria.
+            we've touched across Nigeria
           </p>
-        </div>
+        </motion.div>
 
         {/* Filters */}
-        <div className="mb-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="mb-12"
+        >
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-center max-w-2xl mx-auto">
             <div className="relative flex-1 w-full max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search events, locations..."
+                placeholder="Search events..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-11"
               />
             </div>
             <Select
               value={selectedCategory}
               onValueChange={setSelectedCategory}
             >
-              <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectTrigger className="w-full sm:w-[200px] h-11">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
@@ -260,22 +212,31 @@ export default function GalleryPage() {
               </SelectContent>
             </Select>
           </div>
-        </div>
+        </motion.div>
 
         {error && (
-          <div className="mb-8 text-center">
-            <div className="inline-block bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-yellow-800">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-8 text-center"
+          >
+            <div className="inline-block bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+              <p className="text-yellow-800 dark:text-yellow-200 text-sm">
                 Unable to load latest gallery events. Showing sample content.
               </p>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Results count */}
-        <div className="text-center mb-8">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-8"
+        >
           <p className="text-muted-foreground">
-            Showing {filteredEvents.length} event
+            {filteredEvents.length} event
             {filteredEvents.length !== 1 ? "s" : ""}
             {selectedCategory !== "all" && (
               <span>
@@ -284,106 +245,109 @@ export default function GalleryPage() {
               </span>
             )}
           </p>
-        </div>
+        </motion.div>
 
         {/* Events Grid */}
         {filteredEvents.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredEvents.map((event) => (
-              <Card
-                key={event.id}
-                className="overflow-hidden group hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-                onClick={() => setSelectedEvent(event)}
-              >
-                <div className="relative aspect-video overflow-hidden">
-                  <Image
-                    src={event.coverImage || "/placeholder.svg"}
-                    alt={event.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "/placeholder.svg";
-                    }}
-                  />
+          <motion.div
+            layout
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredEvents.map((event, index) => (
+                <motion.div
+                  key={event.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{
+                    duration: 0.4,
+                    delay: index * 0.05,
+                    layout: { duration: 0.3 },
+                  }}
+                >
+                  <Link href={`/gallery/${event.slug}`} className="block group">
+                    <Card className="overflow-hidden h-full hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+                      <motion.div
+                        className="relative aspect-[4/3] overflow-hidden bg-muted"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                      >
+                        <Image
+                          src={event.coverImage || "/placeholder.svg"}
+                          alt={event.title}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "/placeholder.svg";
+                          }}
+                        />
 
-                  {/* Category Badge */}
-                  <div className="absolute top-4 left-4">
-                    <Badge
-                      variant="secondary"
-                      className="bg-black/70 text-white border-none"
-                    >
-                      {event.category}
-                    </Badge>
-                  </div>
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0" />
 
-                  {/* Media Count Overlay */}
-                  <div className="absolute bottom-4 right-4 flex gap-2">
-                    {event.imageCount > 0 && (
-                      <div className="bg-black/70 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
-                        <Images className="h-3 w-3" />
-                        {event.imageCount}
+                        {/* Media Count Badge */}
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                          className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-white text-sm px-3 py-1.5 rounded-full flex items-center gap-2 font-medium"
+                        >
+                          <ImagesIcon className="h-4 w-4" />
+                          {event.mediaCount}
+                        </motion.div>
+
+                        {/* Hover overlay */}
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          whileHover={{ opacity: 1 }}
+                          transition={{ duration: 0.3 }}
+                          className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center"
+                        >
+                          <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            whileHover={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.3 }}
+                            className="flex items-center gap-2 text-white font-medium text-lg"
+                          >
+                            <span>View Gallery</span>
+                            <ArrowRight className="h-5 w-5" />
+                          </motion.div>
+                        </motion.div>
+
+                        {/* Category Badge at bottom */}
+                        <div className="absolute bottom-4 left-4">
+                          <span className="bg-white/95 dark:bg-black/95 backdrop-blur-sm text-foreground text-xs px-3 py-1.5 rounded-full font-medium capitalize">
+                            {event.category}
+                          </span>
+                        </div>
+                      </motion.div>
+
+                      <div className="p-6">
+                        <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                          {event.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-1">
+                          {event.location || "Nigeria"}
+                        </p>
                       </div>
-                    )}
-                    {event.videoCount > 0 && (
-                      <div className="bg-black/70 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
-                        <Play className="h-3 w-3" />
-                        {event.videoCount}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <Button variant="secondary" size="sm">
-                      View Gallery
-                    </Button>
-                  </div>
-                </div>
-
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-                    {event.title}
-                  </h3>
-
-                  {event.description && (
-                    <p className="text-muted-foreground mb-4 line-clamp-2">
-                      {event.description}
-                    </p>
-                  )}
-
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    {event.eventDate && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(event.eventDate).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </div>
-                    )}
-                    {event.location && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        {event.location}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t">
-                    <div className="text-sm font-medium text-primary">
-                      {event.mediaCount} media items
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    </Card>
+                  </Link>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         ) : (
-          <div className="text-center py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16"
+          >
             <div className="max-w-md mx-auto">
-              <Images className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <ImagesIcon className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-2xl font-semibold mb-2">No events found</h3>
               <p className="text-muted-foreground mb-6">
                 {searchQuery || selectedCategory !== "all"
@@ -404,137 +368,8 @@ export default function GalleryPage() {
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
-
-        {/* Event Detail Modal */}
-        <Dialog
-          open={!!selectedEvent}
-          onOpenChange={() => setSelectedEvent(null)}
-        >
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-            {selectedEvent && (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="flex items-center justify-between">
-                    <span>{selectedEvent.title}</span>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/gallery/${selectedEvent.slug}`}>
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        View Full Gallery
-                      </Link>
-                    </Button>
-                  </DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-6 overflow-y-auto">
-                  {/* Cover Image */}
-                  <div className="relative aspect-video rounded-lg overflow-hidden">
-                    <Image
-                      src={selectedEvent.coverImage || "/placeholder.svg"}
-                      alt={selectedEvent.title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-
-                  {/* Event Details */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">
-                        Category
-                      </div>
-                      <Badge variant="secondary">
-                        {selectedEvent.category}
-                      </Badge>
-                    </div>
-                    {selectedEvent.eventDate && (
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">
-                          Date
-                        </div>
-                        <div className="text-sm">
-                          {new Date(
-                            selectedEvent.eventDate
-                          ).toLocaleDateString()}
-                        </div>
-                      </div>
-                    )}
-                    {selectedEvent.location && (
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">
-                          Location
-                        </div>
-                        <div className="text-sm">{selectedEvent.location}</div>
-                      </div>
-                    )}
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">
-                        Media
-                      </div>
-                      <div className="text-sm">
-                        {selectedEvent.mediaCount} items
-                      </div>
-                    </div>
-                  </div>
-
-                  {selectedEvent.description && (
-                    <div>
-                      <h4 className="font-semibold mb-2">About this event</h4>
-                      <p className="text-muted-foreground">
-                        {selectedEvent.description}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Featured Media Preview */}
-                  {selectedEvent.featuredMedia &&
-                    selectedEvent.featuredMedia.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold mb-4">Featured Media</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          {selectedEvent.featuredMedia
-                            .slice(0, 6)
-                            .map((media) => (
-                              <div
-                                key={media.id}
-                                className="relative aspect-square rounded overflow-hidden"
-                              >
-                                {media.mediaType === "IMAGE" ? (
-                                  <Image
-                                    src={media.mediaUrl}
-                                    alt={media.title || "Media"}
-                                    fill
-                                    className="object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-black flex items-center justify-center">
-                                    <Play className="h-8 w-8 text-white" />
-                                    {media.duration && (
-                                      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                                        {formatDuration(media.duration)}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-
-                  <div className="pt-4 border-t">
-                    <Button asChild className="w-full">
-                      <Link href={`/gallery/${selectedEvent.slug}`}>
-                        Explore Full Gallery ({selectedEvent.mediaCount} items)
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

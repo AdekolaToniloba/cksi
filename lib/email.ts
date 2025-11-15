@@ -78,7 +78,7 @@ export class EmailUtils {
         <h2>Welcome to CKSI Newsletter</h2>
         <p>Dear ${name || "Subscriber"},</p>
         <p>Thank you for subscribing to our newsletter. You'll receive updates about our programs, success stories, and ways to get involved.</p>
-        <p>Visit our website to learn more about our work: <a href="https://cksi.org.ng">cksi.org.ng</a></p>
+        <p>Visit our website to learn more about our work: <a href="https://cksi.org">cksi.org</a></p>
         <p>Best regards,<br>The CKSI Team</p>
       `,
       text: `
@@ -88,7 +88,7 @@ export class EmailUtils {
         
         Thank you for subscribing to our newsletter. You'll receive updates about our programs, success stories, and ways to get involved.
         
-        Visit our website to learn more about our work: https://cksi.org.ng
+        Visit our website to learn more about our work: https://cksi.org
         
         Best regards,
         The CKSI Team
