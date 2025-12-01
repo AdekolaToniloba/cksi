@@ -7,20 +7,22 @@ import { TestimonialsCarousel } from "@/components/testimonials-carousel";
 import { PartnerLogos } from "@/components/partner-logos";
 import { VolunteerSection } from "@/components/volunteer/volunteer-section";
 import { FeaturedEvents } from "@/components/featured-events";
+import { NewsletterPopup } from "@/components/newsletter-popup";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-white">
       <HeroSection />
-      {/* <ImpactStats /> */}
-      {/* <FeaturedPrograms /> */}
-      <FeaturedEvents limit={6} />
-      <VolunteerSection />
 
-      <RecentBlogPosts />
-      {/* <TestimonialsCarousel /> */}
-      {/* <PartnerLogos /> */}
-      <NewsletterSignup />
+      {/* Add breathing room between sections with padding */}
+      <div className="space-y-0">
+        <RecentBlogPosts />
+        <FeaturedEvents limit={6} />
+        <VolunteerSection />
+        <NewsletterSignup />
+      </div>
+
+      <NewsletterPopup />
     </main>
   );
 }

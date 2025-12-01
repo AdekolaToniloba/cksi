@@ -11,7 +11,8 @@ import { Providers } from "@/components/providers/session-provider";
 import { CookieProvider } from "@/components/cookies/CookieProvider";
 import { Navbar } from "@/components/layout/header/navbar";
 import Script from "next/script";
-// import { CookieConsentManager } from "@/components/cookies/cookieConsentManager";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { CookieConsentManager } from "@/components/cookies/cookieConsentManager";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -47,7 +48,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <CookieProvider>
-            {/* <CookieConsentManager /> */}
+            <CookieConsentManager />
             <ThemeProvider
               attribute="class"
               defaultTheme="light"
@@ -69,6 +70,7 @@ export default function RootLayout({
             src="https://js.paystack.co/v1/inline.js"
             strategy="beforeInteractive"
           />
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID!} />
         </Providers>
       </body>
     </html>

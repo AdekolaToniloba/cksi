@@ -1,266 +1,241 @@
-"use client"
+import { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, User, ArrowRight } from "lucide-react";
+import { BlogSearch } from "@/components/blog/blog-search"; // (We will create this small client comp)
+import { formatDate } from "@/lib/utils";
 
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { allBlogPosts, blogCategories } from "@/data/blog"
-import { motion } from "framer-motion"
-import { Search, Calendar, User, ArrowRight, Clock } from "lucide-react"
+export const metadata: Metadata = {
+  title: "Our Blog | CKSI",
+  description: "Updates and stories from Couples and Kids Social Initiatives.",
+};
 
-export default function BlogPage() {
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const postsPerPage = 6
+interface BlogPageProps {
+  searchParams: {
+    q?: string;
+    category?: string;
+    page?: string;
+  };
+}
 
-  const filteredPosts = allBlogPosts.filter((post) => {
-    const matchesCategory = selectedCategory === "all" || post.category === selectedCategory
-    const matchesSearch =
-      (post.title?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-      (post.excerpt?.toLowerCase() || "").includes(searchQuery.toLowerCase())
-    return matchesCategory && matchesSearch
-  })
+export default async function BlogPage({ searchParams }: BlogPageProps) {
+  const page = Number(searchParams.page) || 1;
+  const limit = 9;
+  const skip = (page - 1) * limit;
 
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage)
-  const startIndex = (currentPage - 1) * postsPerPage
-  const currentPosts = filteredPosts.slice(startIndex, startIndex + postsPerPage)
+  const whereClause = {
+    status: "PUBLISHED" as const,
+    ...(searchParams.category && { category: searchParams.category }),
+    ...(searchParams.q && {
+      OR: [
+        { title: { contains: searchParams.q, mode: "insensitive" as const } },
+        { excerpt: { contains: searchParams.q, mode: "insensitive" as const } },
+      ],
+    }),
+  };
 
-  const featuredPost = allBlogPosts[0] || {
-    title: "Welcome to Our Blog",
-    excerpt: "Stay tuned for updates and stories from our programs.",
-    image: "/placeholder.svg?height=400&width=600",
-    author: "CKSI Team",
-    date: "Today",
-    readTime: "2 min read",
-    category: "Updates",
-    slug: "welcome",
-  }
+  // Parallel Data Fetching
+  const [posts, totalPosts, featuredPost] = await Promise.all([
+    prisma.blogPost.findMany({
+      where: whereClause,
+      include: { author: { select: { name: true } } },
+      orderBy: { publishedAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.blogPost.count({ where: whereClause }),
+    // Only fetch featured if on page 1 and no search filters
+    page === 1 && !searchParams.q && !searchParams.category
+      ? prisma.blogPost.findFirst({
+          where: { isFeatured: true, status: "PUBLISHED" },
+          include: { author: { select: { name: true } } },
+        })
+      : null,
+  ]);
+
+  const totalPages = Math.ceil(totalPosts / limit);
+
+  // If featured post exists, filter it out of the main grid to avoid duplicates
+  const gridPosts = featuredPost
+    ? posts.filter((p) => p.id !== featuredPost.id)
+    : posts;
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <motion.section
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="py-16 bg-gradient-to-br from-secondary/10 via-background to-primary/10"
-      >
-        <div className="container px-4 md:px-6">
-          <div className="max-w-4xl mx-auto text-center">
-            <motion.h1
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="text-4xl md:text-5xl font-bold mb-6"
-            >
-              Our Blog
-            </motion.h1>
-            <motion.p
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-xl text-muted-foreground mb-8"
-            >
-              Stay updated with our latest stories, program updates, success stories, and insights from the field. Read
-              about the impact we're making together in communities across Nigeria.
-            </motion.p>
-          </div>
+    <div className="min-h-screen bg-gray-50/50 pb-20">
+      {/* Hero */}
+      <section className="bg-white border-b py-16 md:py-24">
+        <div className="container px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-blue-950 mb-4">
+            Our Blog
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Stories of impact, health insights, and community updates from
+            across Nigeria.
+          </p>
         </div>
-      </motion.section>
+      </section>
 
-      {/* Featured Post */}
-      <section className="py-16">
-        <div className="container px-4 md:px-6">
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-          >
-            <h2 className="text-2xl font-bold mb-8">Featured Story</h2>
-            <Card className="overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="grid grid-cols-1 lg:grid-cols-2">
-                <div className="relative h-64 lg:h-auto">
+      <div className="container px-4 mt-8">
+        {/* Search & Filter Component */}
+        <BlogSearch
+          initialQuery={searchParams.q}
+          initialCategory={searchParams.category}
+        />
+
+        {/* Featured Post Section */}
+        {featuredPost && (
+          <div className="my-12">
+            <h2 className="text-2xl font-bold text-blue-950 mb-6">
+              Featured Story
+            </h2>
+            <Card className="overflow-hidden border-0 shadow-lg group">
+              <div className="grid md:grid-cols-2 gap-0">
+                <div className="relative h-64 md:h-auto min-h-[300px] overflow-hidden">
                   <Image
-                    src={featuredPost.image || "/placeholder.svg"}
+                    src={featuredPost.imageUrl || "/placeholder.jpg"}
                     alt={featuredPost.title}
                     fill
-                    className="object-cover"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
-                <div className="p-8 flex flex-col justify-center">
-                  <div className="flex items-center gap-4 mb-4">
-                    <Badge className="bg-primary text-white">{featuredPost.category}</Badge>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      {featuredPost.date}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      {featuredPost.readTime}
-                    </div>
+                <div className="p-8 md:p-12 flex flex-col justify-center bg-white">
+                  <div className="flex gap-2 mb-4">
+                    <Badge
+                      variant="secondary"
+                      className="bg-red-100 text-red-700 hover:bg-red-200"
+                    >
+                      {featuredPost.category}
+                    </Badge>
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">{featuredPost.title}</h3>
-                  <p className="text-muted-foreground mb-6">{featuredPost.excerpt}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <User className="h-4 w-4" />
-                      By {featuredPost.author}
+                  <h3 className="text-3xl font-bold mb-4 text-blue-950 group-hover:text-blue-700 transition-colors">
+                    <Link href={`/blog/${featuredPost.slug}`}>
+                      {featuredPost.title}
+                    </Link>
+                  </h3>
+                  <p className="text-muted-foreground mb-6 text-lg line-clamp-3">
+                    {featuredPost.excerpt}
+                  </p>
+                  <div className="flex items-center justify-between mt-auto">
+                    <div className="flex items-center text-sm text-gray-500 gap-4">
+                      <span className="flex items-center gap-1">
+                        <User className="w-4 h-4" />{" "}
+                        {featuredPost.author.name || "CKSI Team"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {featuredPost.publishedAt
+                          ? formatDate(featuredPost.publishedAt)
+                          : "Draft"}
+                      </span>
                     </div>
-                    <Button asChild>
+                    <Button asChild className="rounded-full">
                       <Link href={`/blog/${featuredPost.slug}`}>
-                        Read More
-                        <ArrowRight className="h-4 w-4 ml-2" />
+                        Read Story <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
                   </div>
                 </div>
               </div>
             </Card>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Search and Filter */}
-      <section className="py-8 bg-muted/50">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search articles..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {blogCategories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category.id)}
-                  className="transition-all duration-300 hover:scale-105"
-                >
-                  {category.name}
-                </Button>
-              ))}
-            </div>
           </div>
-        </div>
-      </section>
+        )}
 
-      {/* Blog Posts Grid */}
-      <section className="py-16">
-        <div className="container px-4 md:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {currentPosts.map((post, index) => (
-              <motion.div
+        {/* Main Grid */}
+        {gridPosts.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
+            {gridPosts.map((post) => (
+              <Card
                 key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.6 }}
-                whileHover={{ y: -5 }}
-                className="group"
+                className="group border-0 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col h-full overflow-hidden"
               >
-                <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 h-full">
-                  <div className="relative h-48">
-                    <Image
-                      src={post.image || "/placeholder.svg"}
-                      alt={post.title}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <Badge
-                        className={`${
-                          post.category === "Education"
-                            ? "bg-secondary text-white"
-                            : post.category === "Healthcare"
-                              ? "bg-primary text-white"
-                              : post.category === "Success Stories"
-                                ? "bg-green-500 text-white"
-                                : post.category === "Community"
-                                  ? "bg-purple-500 text-white"
-                                  : "bg-orange-500 text-white"
-                        }`}
-                      >
-                        {post.category}
-                      </Badge>
-                    </div>
+                <div className="relative h-52 overflow-hidden">
+                  <Image
+                    src={post.imageUrl || "/placeholder.jpg"}
+                    alt={post.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute top-4 left-4">
+                    <Badge className="bg-white/90 text-blue-950 hover:bg-white backdrop-blur-sm shadow-sm">
+                      {post.category}
+                    </Badge>
                   </div>
-
-                  <CardHeader>
-                    <div className="flex items-center gap-4 mb-2 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {post.date}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {post.readTime}
-                      </div>
-                    </div>
-                    <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">
-                      {post.title}
-                    </CardTitle>
-                    <CardDescription className="line-clamp-3">{post.excerpt}</CardDescription>
-                  </CardHeader>
-
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <User className="h-4 w-4" />
-                        {post.author}
-                      </div>
-                      <Button variant="ghost" size="sm" asChild className="group">
-                        <Link href={`/blog/${post.slug}`}>
-                          Read More
-                          <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                </div>
+                <CardHeader>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {post.publishedAt
+                        ? formatDate(post.publishedAt)
+                        : "Draft"}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> 5 min read
+                    </span>
+                  </div>
+                  <CardTitle className="line-clamp-2 group-hover:text-blue-700 transition-colors text-xl">
+                    <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+                  </CardTitle>
+                  <CardDescription className="line-clamp-3 mt-2">
+                    {post.excerpt}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="mt-auto pt-0">
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto font-semibold text-blue-600 group-hover:text-blue-800"
+                    asChild
+                  >
+                    <Link href={`/blog/${post.slug}`}>
+                      Read More{" "}
+                      <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
             ))}
           </div>
+        ) : (
+          <div className="text-center py-20 bg-white rounded-lg border border-dashed">
+            <h3 className="text-lg font-medium text-gray-900">
+              No stories found
+            </h3>
+            <p className="text-gray-500">
+              Try adjusting your search or filters.
+            </p>
+          </div>
+        )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-12">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-16">
+            {page > 1 && (
+              <Button variant="outline" asChild>
+                <Link href={`/blog?page=${page - 1}`}>Previous</Link>
               </Button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "outline"}
-                  onClick={() => setCurrentPage(page)}
-                  className="w-10 h-10"
-                >
-                  {page}
-                </Button>
-              ))}
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                Next
+            )}
+            <span className="flex items-center px-4 font-medium text-sm">
+              Page {page} of {totalPages}
+            </span>
+            {page < totalPages && (
+              <Button variant="outline" asChild>
+                <Link href={`/blog?page=${page + 1}`}>Next</Link>
               </Button>
-            </div>
-          )}
-        </div>
-      </section>
+            )}
+          </div>
+        )}
+      </div>
     </div>
-  )
+  );
 }

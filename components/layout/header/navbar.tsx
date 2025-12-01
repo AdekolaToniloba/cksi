@@ -1,14 +1,13 @@
-// components/layout/header/navbar.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   Menu,
-  X,
   ChevronDown,
   Facebook,
   Instagram,
@@ -16,10 +15,10 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
-// Types
+// --- Types ---
 interface NavigationItem {
   id: string;
   label: string;
@@ -37,82 +36,74 @@ interface NavigationDropdown {
   items: NavigationItem[];
 }
 
+interface SocialLink {
+  platform: string;
+  url: string;
+  icon: string;
+}
+
 interface NavigationConfig {
   main: NavigationDropdown[];
   footer: {
-    sections: any[];
-    social: Array<{
-      platform: string;
-      url: string;
-      icon: string;
-    }>;
+    sections: { title: string; links: { label: string; href: string }[] }[];
+    social: SocialLink[];
   };
 }
 
-// Navigation configuration with enhanced data
+// --- Configuration ---
 const navigationConfig: NavigationConfig = {
   main: [
     {
       id: "about",
       label: "About",
       description:
-        "Learn about our mission, values, and the people behind CKSI. Discover how we're making a difference in communities.",
+        "Learn about our mission, values, and the people driving change.",
       href: "/about",
-      image: "/images/about-preview.jpg",
-      imageAlt: "CKSI team members",
+      image:
+        "https://res.cloudinary.com/dyhbo6rzr/image/upload/v1764332576/cksi/events/general/images/1764332572814-IMG_0258.jpg",
+      imageAlt: "CKSI Team",
       items: [
         {
           id: "our-story",
           label: "Our Story",
           href: "/about",
-          description: "The journey of CKSI and our impact",
+          description: "Our journey & impact",
         },
         {
-          id: "foundation-faq",
+          id: "faq",
           label: "Foundation FAQ",
           href: "/about/faq",
-          description: "Common questions answered",
-        },
-        {
-          id: "contact-us",
-          label: "Contact Us",
-          href: "/contact",
-          description: "Get in touch with our team",
+          description: "Common questions",
         },
         {
           id: "leadership",
           label: "Leadership",
           href: "/about/leadership",
-          description: "Meet our dedicated leaders",
+          description: "Meet the board",
         },
         {
-          id: "ways-to-give",
-          label: "Ways to Give",
-          href: "/donate",
-          description: "Various donation options",
+          id: "contact",
+          label: "Contact Us",
+          href: "/contact",
+          description: "Get in touch",
         },
       ],
     },
     {
-      id: "our-work",
+      id: "work",
       label: "Our Work",
       description:
-        "Explore our programs, initiatives, and the communities we serve. See the tangible impact of your support.",
+        "Explore our initiatives across education, health, and community.",
       href: "/work",
-      image: "/images/work-preview.jpg",
-      imageAlt: "CKSI programs in action",
+      image:
+        "https://res.cloudinary.com/dyhbo6rzr/image/upload/v1764332576/cksi/events/general/images/1764332572814-IMG_0258.jpg",
+      imageAlt: "Community Outreach",
       items: [
         {
-          id: "explore-our-work",
+          id: "programs",
           label: "Explore Our Work",
           href: "/work",
-          description: "Overview of all our initiatives",
-        },
-        {
-          id: "events",
-          label: "Events",
-          href: "/gallery",
-          description: "Photos and highlights from our events",
+          description: "All initiatives",
         },
         {
           id: "places",
@@ -120,34 +111,41 @@ const navigationConfig: NavigationConfig = {
           href: "/work/places",
           description: "Communities we serve",
         },
+        {
+          id: "gallery",
+          label: "Event Gallery",
+          href: "/gallery",
+          description: "Photos & Videos",
+        },
       ],
     },
     {
-      id: "ways-to-contribute",
-      label: "Ways to Contribute",
+      id: "contribute",
+      label: "Get Involved",
       description:
-        "Join us in making a difference. Whether through donations, volunteering, or partnerships, your contribution matters.",
+        "Join us in making a difference through volunteering or donations.",
       href: "/donate",
-      image: "/images/contribute-preview.jpg",
-      imageAlt: "People contributing to CKSI",
+      image:
+        "https://res.cloudinary.com/dyhbo6rzr/image/upload/v1764332576/cksi/events/general/images/1764332572814-IMG_0258.jpg",
+      imageAlt: "Volunteers",
       items: [
         {
           id: "donate",
           label: "Donate",
           href: "/donate",
-          description: "Support our mission financially",
+          description: "Support us financially",
         },
         {
           id: "volunteer",
           label: "Volunteer",
           href: "/volunteer",
-          description: "Give your time and skills",
+          description: "Give your time",
         },
         {
-          id: "partner-with-us",
+          id: "partner",
           label: "Partner with Us",
           href: "/partnerships",
-          description: "Collaborate for greater impact",
+          description: "Corporate alliances",
         },
       ],
     },
@@ -174,33 +172,29 @@ const navigationConfig: NavigationConfig = {
   },
 };
 
-// Animation variants
-const dropdownVariants = {
+// --- Animations ---
+const dropdownVariants: Variants = {
   hidden: {
     opacity: 0,
     y: -10,
-    transition: {
-      duration: 0.2,
-    },
+    transition: { duration: 0.2 },
   },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
       duration: 0.3,
-      ease: [0.16, 1, 0.3, 1],
+      ease: [0.16, 1, 0.3, 1] as const,
     },
   },
   exit: {
     opacity: 0,
     y: -10,
-    transition: {
-      duration: 0.2,
-    },
+    transition: { duration: 0.2 },
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, x: -10 },
   visible: (i: number) => ({
     opacity: 1,
@@ -208,391 +202,298 @@ const itemVariants = {
     transition: {
       delay: i * 0.05,
       duration: 0.3,
-      ease: [0.16, 1, 0.3, 1],
+      ease: [0.16, 1, 0.3, 1] as const,
     },
   }),
 };
 
-const mobileMenuVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-    },
-  },
-};
+// --- Portal Component ---
+function DropdownPortal({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
 
-const mobileItemVariants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: {
-      duration: 0.3,
-      ease: [0.16, 1, 0.3, 1],
-    },
-  },
-};
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
-// Social Media Icons Component
-function SocialMediaIcons({ className }: { className?: string }) {
-  const getIcon = (platform: string) => {
-    switch (platform) {
-      case "facebook":
-        return Facebook;
-      case "instagram":
-        return Instagram;
-      case "linkedin":
-        return Linkedin;
-      case "twitter":
-        return Linkedin;
-      default:
-        return Linkedin;
+  if (!mounted) return null;
+
+  return createPortal(children, document.body);
+}
+
+// --- Desktop Dropdown Component (With Portal) ---
+function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
+    setIsOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsOpen(false);
+    }, 100);
   };
 
   return (
     <div
-      className={cn("flex items-center space-x-2", className)}
-      role="list"
-      aria-label="Social media links"
+      className="relative h-full flex items-center"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      {navigationConfig.footer.social.map((social) => {
-        const IconComponent = getIcon(social.platform);
-
-        return (
-          <motion.div
-            key={social.platform}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            role="listitem"
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              asChild
-              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
-              data-testid={`social-${social.platform}`}
-            >
-              <Link
-                href={social.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`Follow us on ${social.platform}`}
-              >
-                <IconComponent className="h-4 w-4" />
-              </Link>
-            </Button>
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-}
-
-// Desktop Dropdown Component
-function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div
-      className="relative"
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
-    >
-      <motion.button
+      {/* Trigger Button */}
+      <button
         className={cn(
-          "group h-10 px-4 py-2 text-sm font-medium transition-colors rounded-md",
-          "hover:bg-accent hover:text-accent-foreground",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-          isOpen && "bg-accent/50 text-accent-foreground"
+          "flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-all outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+          "text-slate-600 hover:text-blue-600 hover:bg-blue-50",
+          "dark:text-slate-300 dark:hover:text-blue-400 dark:hover:bg-blue-950/30",
+          isOpen &&
+            "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/30"
         )}
-        data-testid={`nav-trigger-${dropdown.id}`}
         aria-expanded={isOpen}
         aria-haspopup="true"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
       >
-        <span className="flex items-center gap-1">
-          {dropdown.label}
-          <motion.div
-            animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <ChevronDown className="h-4 w-4" />
-          </motion.div>
-        </span>
-      </motion.button>
+        {dropdown.label}
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 transition-transform duration-200",
+            isOpen && "rotate-180"
+          )}
+        />
+      </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            {/* Backdrop overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/5 backdrop-blur-sm"
-              style={{ top: "64px" }}
-              aria-hidden="true"
-            />
+      <DropdownPortal>
+        <AnimatePresence>
+          {isOpen && (
+            <>
+              {/* Backdrop - visual only, no mouse events */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-x-0 bottom-0 bg-black/5 backdrop-blur-sm z-40 pointer-events-none"
+                style={{ top: "64px" }}
+                aria-hidden="true"
+              />
 
-            {/* Dropdown content */}
-            <motion.div
-              variants={dropdownVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="fixed left-0 right-0 pt-2 flex justify-center px-4"
-              style={{ top: "64px" }}
-              role="menu"
-              aria-label={`${dropdown.label} menu`}
-            >
-              <div className="bg-background border rounded-lg shadow-xl p-8 w-full max-w-[1200px]">
-                <div className="grid grid-cols-12 gap-8">
-                  {/* Column 1: Description */}
-                  <div className="col-span-4 space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">
-                        {dropdown.label}
-                      </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {dropdown.description}
-                      </p>
-                    </div>
-                    {dropdown.href && (
-                      <motion.div
-                        whileHover={{ x: 4 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Link
-                          href={dropdown.href}
-                          className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline underline-offset-4 group"
-                          role="menuitem"
-                        >
-                          View all
-                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Link>
-                      </motion.div>
-                    )}
-                  </div>
+              {/* Dropdown Panel - handles mouse events */}
+              <motion.div
+                variants={dropdownVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                className="fixed left-0 right-0 z-50"
+                style={{ top: "64px" }}
+              >
+                {/* Invisible bridge to connect header button to dropdown */}
+                <div className="h-4" />
 
-                  {/* Column 2: Navigation Links */}
-                  <nav
-                    className="col-span-4 space-y-1"
-                    aria-label={`${dropdown.label} navigation`}
-                  >
-                    {dropdown.items.map((item, index) => (
-                      <motion.div
-                        key={item.id}
-                        custom={index}
-                        variants={itemVariants}
-                        initial="hidden"
-                        animate="visible"
-                      >
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            "block rounded-md p-3 transition-colors",
-                            "hover:bg-accent focus-visible:bg-accent",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                            "group"
-                          )}
-                          data-testid={`dropdown-item-${item.id}`}
-                          role="menuitem"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="space-y-1 flex-1">
-                              <div className="text-sm font-medium leading-none group-hover:text-primary transition-colors">
-                                {item.label}
-                              </div>
-                              {item.description && (
-                                <p className="text-sm text-muted-foreground line-clamp-1">
-                                  {item.description}
-                                </p>
-                              )}
-                            </div>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-2 mt-0.5" />
+                <div className="px-4 md:px-6 lg:px-8">
+                  <div className="mx-auto w-full max-w-[1400px]">
+                    <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                      <div className="grid grid-cols-12 min-h-[350px]">
+                        {/* SECTION 1: Summary */}
+                        <div className="col-span-3 bg-slate-50 dark:bg-slate-900/50 p-8 flex flex-col justify-between border-r border-slate-100 dark:border-slate-800">
+                          <div>
+                            <h3 className="text-2xl font-bold text-blue-950 dark:text-blue-50 mb-4">
+                              {dropdown.label}
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                              {dropdown.description}
+                            </p>
                           </div>
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </nav>
+                          {dropdown.href && (
+                            <Link
+                              href={dropdown.href}
+                              className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 mt-6 group"
+                            >
+                              View Overview
+                              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                            </Link>
+                          )}
+                        </div>
 
-                  {/* Column 3: Image (if available) */}
-                  {dropdown.image && (
-                    <motion.div
-                      className="col-span-4 rounded-lg overflow-hidden bg-muted"
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.1, duration: 0.3 }}
-                    >
-                      <div className="relative aspect-[4/3] w-full">
-                        <Image
-                          src={dropdown.image}
-                          alt={dropdown.imageAlt || `${dropdown.label} preview`}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 1200px) 33vw, 400px"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <p className="text-white text-sm font-medium">
-                            {dropdown.imageAlt || dropdown.label}
+                        {/* SECTION 2: Links */}
+                        <div className="col-span-5 p-8">
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6">
+                            Direct Links
                           </p>
+                          <div className="grid gap-2">
+                            {dropdown.items.map((item, i) => (
+                              <motion.div
+                                key={item.id}
+                                custom={i}
+                                variants={itemVariants}
+                                initial="hidden"
+                                animate="visible"
+                              >
+                                <Link
+                                  href={item.href}
+                                  className="group flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
+                                >
+                                  <div>
+                                    <span className="block text-base font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                      {item.label}
+                                    </span>
+                                    {item.description && (
+                                      <span className="block text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                        {item.description}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <ArrowRight className="h-4 w-4 text-slate-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                                </Link>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* SECTION 3: Image */}
+                        <div className="col-span-4 relative">
+                          <div className="absolute inset-4 rounded-xl overflow-hidden">
+                            {dropdown.image ? (
+                              <>
+                                <Image
+                                  src={dropdown.image}
+                                  alt={dropdown.imageAlt || ""}
+                                  fill
+                                  className="object-cover transition-transform duration-700 hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-blue-950/90 via-blue-950/20 to-transparent" />
+                                <div className="absolute bottom-0 left-0 right-0 p-6">
+                                  <span className="inline-block px-3 py-1 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold uppercase tracking-wider rounded mb-2">
+                                    Featured
+                                  </span>
+                                  <p className="text-white font-medium text-lg leading-tight">
+                                    {dropdown.imageAlt}
+                                  </p>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="w-full h-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
+                                <span className="font-bold text-slate-300 text-2xl">
+                                  CKSI
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </motion.div>
-                  )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </DropdownPortal>
     </div>
   );
 }
 
-// Mobile Navigation Component
-function MobileNavigation({
+// --- Mobile Menu ---
+function MobileMenu({
   isOpen,
   onClose,
 }: {
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-
-  const toggleDropdown = (dropdownId: string) => {
-    setOpenDropdown(openDropdown === dropdownId ? null : dropdownId);
-  };
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[300px] sm:w-[400px] p-0">
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b">
-            <Link
-              href="/"
-              onClick={onClose}
-              className="flex items-center space-x-3"
-              aria-label="CKSI Home"
-            >
-              <div className="relative w-8 h-8">
-                <Image
-                  src="/cksilogo.png"
-                  alt="CKSI Logo"
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-sm">CKSI</span>
-                <span className="text-xs text-primary">Social Initiative</span>
-              </div>
-            </Link>
+      <SheetContent
+        side="right"
+        className="w-[300px] sm:w-[400px] p-0 border-l-slate-200 dark:border-slate-800"
+      >
+        <div className="flex flex-col h-full bg-white dark:bg-slate-950">
+          <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+            <span className="font-bold text-xl tracking-tight text-blue-950 dark:text-blue-50">
+              CKSI
+            </span>
           </div>
 
-          {/* Navigation */}
-          <motion.nav
-            className="flex-1 p-6 space-y-2 overflow-y-auto"
-            variants={mobileMenuVariants}
-            initial="hidden"
-            animate="visible"
-            aria-label="Mobile navigation"
-          >
-            {navigationConfig.main.map((dropdown) => (
-              <motion.div
-                key={dropdown.id}
-                className="space-y-2"
-                variants={mobileItemVariants}
-              >
+          <div className="flex-1 overflow-y-auto py-6 px-4">
+            {navigationConfig.main.map((section) => (
+              <div key={section.id} className="mb-6">
                 <button
-                  onClick={() => toggleDropdown(dropdown.id)}
-                  className={cn(
-                    "flex items-center justify-between w-full text-left text-lg font-medium py-2",
-                    "hover:text-primary transition-colors rounded-md px-2",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  )}
-                  data-testid={`mobile-nav-${dropdown.id}`}
-                  aria-expanded={openDropdown === dropdown.id}
-                  aria-controls={`mobile-dropdown-${dropdown.id}`}
+                  onClick={() =>
+                    setActiveTab(activeTab === section.id ? null : section.id)
+                  }
+                  className="flex items-center justify-between w-full py-3 text-lg font-bold text-slate-900 dark:text-slate-100"
                 >
-                  {dropdown.label}
-                  <motion.div
-                    animate={{ rotate: openDropdown === dropdown.id ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                  </motion.div>
+                  {section.label}
+                  <ChevronDown
+                    className={cn(
+                      "h-5 w-5 transition-transform",
+                      activeTab === section.id && "rotate-180"
+                    )}
+                  />
                 </button>
 
                 <AnimatePresence>
-                  {openDropdown === dropdown.id && (
+                  {activeTab === section.id && (
                     <motion.div
-                      id={`mobile-dropdown-${dropdown.id}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                       className="overflow-hidden"
                     >
-                      <div className="pl-4 space-y-3 border-l-2 border-primary/20 py-2">
-                        {dropdown.items.map((item, index) => (
-                          <motion.div
+                      <div className="pl-4 space-y-2 pb-4 border-l-2 border-blue-100 dark:border-blue-900 ml-2">
+                        {section.items.map((item) => (
+                          <Link
                             key={item.id}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 }}
+                            href={item.href}
+                            onClick={onClose}
+                            className="block py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
                           >
-                            <Link
-                              href={item.href}
-                              onClick={onClose}
-                              className={cn(
-                                "block text-sm text-muted-foreground py-2 px-2 rounded-md",
-                                "hover:text-primary hover:bg-accent transition-colors",
-                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              )}
-                              data-testid={`mobile-dropdown-item-${item.id}`}
-                            >
-                              {item.label}
-                            </Link>
-                          </motion.div>
+                            {item.label}
+                          </Link>
                         ))}
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </motion.div>
+              </div>
             ))}
-          </motion.nav>
+          </div>
 
-          {/* Footer */}
-          <div className="p-6 border-t space-y-4">
-            {/* Theme Toggle - Mobile */}
-            <div className="flex items-center justify-between py-2 px-2 rounded-md bg-accent/50">
-              <span className="text-sm font-medium">Theme</span>
+          <div className="p-6 bg-slate-50 dark:bg-slate-900 space-y-4">
+            <Button
+              asChild
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              size="lg"
+            >
+              <Link href="/donate" onClick={onClose}>
+                Donate Now
+              </Link>
+            </Button>
+            <div className="flex justify-between items-center">
               <ThemeToggle />
-            </div>
-
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                asChild
-                className="w-full"
-                data-testid="mobile-donate-button"
-              >
-                <Link href="/donate" onClick={onClose}>
-                  Donate Now
+              <div className="flex gap-4 text-slate-400">
+                <Link href="https://facebook.com">
+                  <Facebook className="h-5 w-5 hover:text-blue-600" />
                 </Link>
-              </Button>
-            </motion.div>
-
-            <div className="flex justify-center">
-              <SocialMediaIcons />
+                <Link href="https://instagram.com">
+                  <Instagram className="h-5 w-5 hover:text-pink-600" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -601,122 +502,75 @@ function MobileNavigation({
   );
 }
 
-// Main Navbar Component
+// --- Main Navbar Export ---
 export function Navbar() {
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Handle scroll effect
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <motion.header
+    <header
       className={cn(
-        "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-        "transition-shadow duration-200",
-        isScrolled && "shadow-sm"
+        "sticky top-0 z-50 w-full h-16 transition-all duration-300 border-b",
+        isScrolled
+          ? "bg-white/95 dark:bg-slate-950/95 backdrop-blur-md shadow-sm border-slate-200 dark:border-slate-800"
+          : "bg-white dark:bg-slate-950 border-transparent"
       )}
-      data-testid="main-navbar"
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      role="banner"
     >
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6 max-w-[1400px] mx-auto">
+      <div className="h-full max-w-[1400px] mx-auto flex items-center justify-between px-4 md:px-6 lg:px-8">
         {/* Logo */}
-        <Link
-          href="/"
-          className={cn(
-            "flex items-center space-x-3 transition-opacity rounded-md",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          )}
-          data-testid="logo-link"
-          aria-label="CKSI Home"
-        >
-          <motion.div
-            className="relative w-10 h-10"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Image
-              src="/cksi-logo.png"
-              alt="CKSI Logo"
-              fill
-              className="object-contain"
-              priority
-            />
-          </motion.div>
+        <Link href="/" className="flex items-center gap-2 group z-50">
+          <div className="relative w-10 h-10 overflow-hidden rounded-lg bg-blue-50 dark:bg-blue-900/20 p-1">
+            <div className="w-full h-full bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xs">
+              CKSI
+            </div>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-lg font-bold leading-none text-slate-900 dark:text-white tracking-tight group-hover:text-blue-600 transition-colors">
+              CKSI
+            </span>
+            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
+              Social Initiative
+            </span>
+          </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav
-          className="hidden lg:flex items-center space-x-1"
-          aria-label="Main navigation"
-        >
+        {/* Desktop Nav - Centered */}
+        <nav className="hidden lg:flex items-center gap-1 absolute left-1/2 -translate-x-1/2 h-full">
           {navigationConfig.main.map((dropdown) => (
             <DesktopDropdown key={dropdown.id} dropdown={dropdown} />
           ))}
         </nav>
 
-        {/* Right Section - Theme Toggle, Donate Button and Social Icons */}
-        <div className="flex items-center space-x-2 md:space-x-3">
-          {/* Theme Toggle - Desktop */}
-          <div className="hidden md:flex">
+        {/* Actions */}
+        <div className="flex items-center gap-3 z-50">
+          <div className="hidden md:block">
             <ThemeToggle />
           </div>
-
-          {/* Desktop Donate Button */}
-          <motion.div
-            className="hidden md:block"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <Button
+            asChild
+            className="hidden sm:flex bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 shadow-lg shadow-blue-600/20"
+            size="sm"
           >
-            <Button
-              asChild
-              className="bg-primary hover:bg-primary/90 transition-colors"
-              data-testid="desktop-donate-button"
-            >
-              <Link href="/donate">Donate Now</Link>
-            </Button>
-          </motion.div>
-
-          {/* Desktop Social Icons */}
-          <div className="hidden lg:flex">
-            <SocialMediaIcons />
-          </div>
-
-          {/* Mobile Menu Button */}
-          <motion.div
+            <Link href="/donate">Donate</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             className="lg:hidden"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            onClick={() => setMobileOpen(true)}
           >
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsMobileNavOpen(true)}
-              data-testid="mobile-menu-button"
-              aria-label="Open menu"
-              aria-expanded={isMobileNavOpen}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </motion.div>
+            <Menu className="h-6 w-6" />
+          </Button>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      <MobileNavigation
-        isOpen={isMobileNavOpen}
-        onClose={() => setIsMobileNavOpen(false)}
-      />
-    </motion.header>
+      <MobileMenu isOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+    </header>
   );
 }

@@ -1,4 +1,3 @@
-// components/volunteer-section.tsx
 "use client";
 
 import Link from "next/link";
@@ -21,15 +20,12 @@ export function VolunteerSection() {
             data-testid="volunteer-image-container"
           >
             <Image
-              src="/placeholder.svg"
+              src="https://res.cloudinary.com/dyhbo6rzr/image/upload/v1764332576/cksi/events/general/images/1764332572814-IMG_0258.jpg"
               alt="Volunteers making a difference in the community"
               fill
               className="object-cover"
               priority
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = "/placeholder.svg";
-              }}
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
             {/* Overlay with stats or badge */}
             <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg">

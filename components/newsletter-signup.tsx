@@ -1,89 +1,97 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mail, CheckCircle } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Mail, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function NewsletterSignup() {
-  const [email, setEmail] = useState("")
-  const [isSubscribed, setIsSubscribed] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState("");
+  const SUBSTACK_URL = "https://cksi.substack.com";
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    setIsSubscribed(true)
-    setIsLoading(false)
-    setEmail("")
-  }
-
-  if (isSubscribed) {
-    return (
-      <section className="py-16 bg-gradient-to-br from-secondary/5 to-primary/5">
-        <div className="container px-4 md:px-6">
-          <Card className="max-w-2xl mx-auto text-center border-secondary/20">
-            <CardContent className="p-8">
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold mb-2">Thank You!</h3>
-              <p className="text-muted-foreground">
-                You've successfully subscribed to our newsletter. We'll keep you updated on our latest programs and
-                impact.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-    )
-  }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    window.open(
+      `${SUBSTACK_URL}/subscribe?email=${encodeURIComponent(email)}`,
+      "_blank"
+    );
+  };
 
   return (
-    <section className="py-16 bg-gradient-to-br from-secondary/5 to-primary/5">
-      <div className="container px-4 md:px-6">
-        <Card className="max-w-2xl mx-auto border-secondary/20">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 bg-secondary/10 rounded-full">
-                <Mail className="h-12 w-12 text-secondary" />
-              </div>
-            </div>
-            <CardTitle className="text-2xl md:text-3xl">
-              Stay <span className="text-secondary">Connected</span>
-            </CardTitle>
-            <CardDescription className="text-lg">
-              Get updates on our programs, success stories, and ways you can make a difference in the lives of families
-              and children across Nigeria.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Input
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="flex-1 border-secondary/30 focus:border-secondary"
-                />
-                <Button type="submit" disabled={isLoading} className="sm:w-auto bg-secondary hover:bg-secondary/90">
-                  {isLoading ? "Subscribing..." : "Subscribe"}
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground text-center">
-                We respect your privacy. Unsubscribe at any time.
-              </p>
-            </form>
-          </CardContent>
-        </Card>
+    <section className="py-24 bg-blue-950 text-white relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <svg
+          className="h-full w-full"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
+        </svg>
+      </div>
+
+      <div className="container px-4 relative z-10">
+        <div className="max-w-3xl mx-auto text-center space-y-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center justify-center p-3 bg-white/10 rounded-full mb-4 backdrop-blur-sm"
+          >
+            <Mail className="h-6 w-6" />
+          </motion.div>
+
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-3xl md:text-5xl font-bold"
+          >
+            Stay Connected to Our Mission
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-blue-100 text-lg max-w-xl mx-auto"
+          >
+            Join 5,000+ supporters receiving monthly updates on our programs,
+            success stories, and events.
+          </motion.p>
+
+          <motion.form
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+            onSubmit={handleSubmit}
+            className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+          >
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/70 h-12 rounded-full px-6 focus:bg-white/20 transition-all"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Button
+              size="lg"
+              className="h-12 rounded-full bg-white text-blue-950 hover:bg-blue-50 font-semibold px-8"
+            >
+              Subscribe <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </motion.form>
+
+          <p className="text-sm text-blue-300/60">
+            Powered by Substack. No spam, unsubscribe anytime.
+          </p>
+        </div>
       </div>
     </section>
-  )
+  );
 }
