@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
-// --- Types ---
+// --- Types (Unchanged) ---
 interface NavigationItem {
   id: string;
   label: string;
@@ -50,7 +50,7 @@ interface NavigationConfig {
   };
 }
 
-// --- Configuration ---
+// --- Configuration (Unchanged) ---
 const navigationConfig: NavigationConfig = {
   main: [
     {
@@ -172,42 +172,68 @@ const navigationConfig: NavigationConfig = {
   },
 };
 
-// --- Animations ---
+// --- Improved Animations (Smoother Spring Physics) ---
+
+// The main panel animation - faster exit, bouncy entrance
 const dropdownVariants: Variants = {
   hidden: {
     opacity: 0,
-    y: -10,
-    transition: { duration: 0.2 },
+    y: -8,
+    scale: 0.98,
+    transition: {
+      duration: 0.15,
+      ease: "easeOut",
+    },
   },
   visible: {
     opacity: 1,
     y: 0,
+    scale: 1,
     transition: {
-      duration: 0.3,
-      ease: [0.16, 1, 0.3, 1] as const,
+      type: "spring",
+      stiffness: 400,
+      damping: 25,
+      mass: 0.8,
+      staggerChildren: 0.05, // Stagger internal items
+      delayChildren: 0.05,
     },
   },
   exit: {
     opacity: 0,
-    y: -10,
-    transition: { duration: 0.2 },
+    y: -4,
+    scale: 0.99,
+    transition: {
+      duration: 0.1,
+      ease: "easeIn",
+    },
   },
 };
 
+// Internal items (links) slide in slightly
 const itemVariants: Variants = {
-  hidden: { opacity: 0, x: -10 },
-  visible: (i: number) => ({
+  hidden: { opacity: 0, y: 5 },
+  visible: {
     opacity: 1,
-    x: 0,
+    y: 0,
     transition: {
-      delay: i * 0.05,
-      duration: 0.3,
-      ease: [0.16, 1, 0.3, 1] as const,
+      type: "spring",
+      stiffness: 500,
+      damping: 30,
     },
-  }),
+  },
 };
 
-// --- Portal Component ---
+// Image reveal animation
+const imageVariants: Variants = {
+  hidden: { opacity: 0, scale: 1.05 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+};
+
+// --- Portal Component (Unchanged) ---
 function DropdownPortal({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
@@ -221,31 +247,27 @@ function DropdownPortal({ children }: { children: React.ReactNode }) {
   return createPortal(children, document.body);
 }
 
-// --- Desktop Dropdown Component (With Portal) ---
+// --- Desktop Dropdown Component (With Improved Transitions) ---
 function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
   const [isOpen, setIsOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
   const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setIsOpen(true);
   };
 
   const handleMouseLeave = () => {
+    // Increased timeout slightly to allow diagonal movement
     timeoutRef.current = setTimeout(() => {
       setIsOpen(false);
-    }, 100);
+    }, 150);
   };
 
   return (
@@ -257,39 +279,36 @@ function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
       {/* Trigger Button */}
       <button
         className={cn(
-          "flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-all outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-          "text-slate-600 hover:text-blue-600 hover:bg-blue-50",
+          "group flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 relative z-50",
+          "text-slate-600 hover:text-blue-600 hover:bg-blue-50/80",
           "dark:text-slate-300 dark:hover:text-blue-400 dark:hover:bg-blue-950/30",
           isOpen &&
-            "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/30"
+            "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/30 shadow-sm ring-1 ring-blue-100 dark:ring-blue-900"
         )}
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
         {dropdown.label}
-        <ChevronDown
-          className={cn(
-            "h-4 w-4 transition-transform duration-200",
-            isOpen && "rotate-180"
-          )}
-        />
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100" />
+        </motion.div>
       </button>
 
       <DropdownPortal>
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
+          {/* mode="wait" ensures one exits before next enters if keys overlap, though here they are independent */}
           {isOpen && (
             <>
-              {/* Backdrop - visual only, no mouse events */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-x-0 bottom-0 bg-black/5 backdrop-blur-sm z-40 pointer-events-none"
-                style={{ top: "64px" }}
-                aria-hidden="true"
+              {/* Backdrop - invisible but catches events to close if clicked outside */}
+              <div
+                className="fixed inset-0 z-40 bg-transparent"
+                onMouseEnter={handleMouseLeave} // Close if mouse moves to empty space
               />
 
-              {/* Dropdown Panel - handles mouse events */}
+              {/* Dropdown Panel */}
               <motion.div
                 variants={dropdownVariants}
                 initial="hidden"
@@ -297,66 +316,65 @@ function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
                 exit="exit"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
-                className="fixed left-0 right-0 z-50"
+                className="fixed left-0 right-0 z-50 origin-top"
                 style={{ top: "64px" }}
               >
-                {/* Invisible bridge to connect header button to dropdown */}
-                <div className="h-4" />
+                {/* Invisible bridge */}
+                <div className="h-3 w-full absolute -top-3 left-0 bg-transparent" />
 
-                <div className="px-4 md:px-6 lg:px-8">
+                <div className="px-4 md:px-6 lg:px-8 pt-2">
                   <div className="mx-auto w-full max-w-[1400px]">
-                    <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    <div className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-blue-900/10 border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
                       <div className="grid grid-cols-12 min-h-[350px]">
                         {/* SECTION 1: Summary */}
-                        <div className="col-span-3 bg-slate-50 dark:bg-slate-900/50 p-8 flex flex-col justify-between border-r border-slate-100 dark:border-slate-800">
-                          <div>
-                            <h3 className="text-2xl font-bold text-blue-950 dark:text-blue-50 mb-4">
+                        <div className="col-span-3 bg-slate-50/50 dark:bg-slate-900/30 p-8 flex flex-col justify-between border-r border-slate-100 dark:border-slate-800">
+                          <motion.div variants={itemVariants}>
+                            <h3 className="text-2xl font-bold text-blue-950 dark:text-blue-50 mb-4 tracking-tight">
                               {dropdown.label}
                             </h3>
                             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                               {dropdown.description}
                             </p>
-                          </div>
+                          </motion.div>
                           {dropdown.href && (
-                            <Link
-                              href={dropdown.href}
-                              className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 mt-6 group"
-                            >
-                              View Overview
-                              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                            </Link>
+                            <motion.div variants={itemVariants}>
+                              <Link
+                                href={dropdown.href}
+                                className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 mt-6 group"
+                              >
+                                View Overview
+                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                              </Link>
+                            </motion.div>
                           )}
                         </div>
 
                         {/* SECTION 2: Links */}
                         <div className="col-span-5 p-8">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6">
+                          <motion.p
+                            variants={itemVariants}
+                            className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6"
+                          >
                             Direct Links
-                          </p>
+                          </motion.p>
                           <div className="grid gap-2">
                             {dropdown.items.map((item, i) => (
-                              <motion.div
-                                key={item.id}
-                                custom={i}
-                                variants={itemVariants}
-                                initial="hidden"
-                                animate="visible"
-                              >
+                              <motion.div key={item.id} variants={itemVariants}>
                                 <Link
                                   href={item.href}
-                                  className="group flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
+                                  className="group flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-200 border border-transparent hover:border-slate-100 dark:hover:border-slate-800 hover:shadow-sm"
                                 >
                                   <div>
                                     <span className="block text-base font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                       {item.label}
                                     </span>
                                     {item.description && (
-                                      <span className="block text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                      <span className="block text-sm text-slate-500 dark:text-slate-400 mt-1 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-300">
                                         {item.description}
                                       </span>
                                     )}
                                   </div>
-                                  <ArrowRight className="h-4 w-4 text-slate-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                                  <ArrowRight className="h-4 w-4 text-blue-200 dark:text-blue-900 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                                 </Link>
                               </motion.div>
                             ))}
@@ -364,8 +382,11 @@ function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
                         </div>
 
                         {/* SECTION 3: Image */}
-                        <div className="col-span-4 relative">
-                          <div className="absolute inset-4 rounded-xl overflow-hidden">
+                        <div className="col-span-4 relative p-4">
+                          <motion.div
+                            className="absolute inset-4 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 shadow-inner"
+                            variants={imageVariants}
+                          >
                             {dropdown.image ? (
                               <>
                                 <Image
@@ -375,8 +396,8 @@ function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
                                   className="object-cover transition-transform duration-700 hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-blue-950/90 via-blue-950/20 to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 p-6">
-                                  <span className="inline-block px-3 py-1 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold uppercase tracking-wider rounded mb-2">
+                                <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-0 transition-transform duration-300">
+                                  <span className="inline-block px-3 py-1 bg-blue-600/90 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider rounded mb-2 shadow-lg">
                                     Featured
                                   </span>
                                   <p className="text-white font-medium text-lg leading-tight">
@@ -385,13 +406,13 @@ function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
                                 </div>
                               </>
                             ) : (
-                              <div className="w-full h-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
+                              <div className="w-full h-full flex items-center justify-center">
                                 <span className="font-bold text-slate-300 text-2xl">
                                   CKSI
                                 </span>
                               </div>
                             )}
-                          </div>
+                          </motion.div>
                         </div>
                       </div>
                     </div>
@@ -406,7 +427,7 @@ function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
   );
 }
 
-// --- Mobile Menu ---
+// --- Mobile Menu (Unchanged structure, just export) ---
 function MobileMenu({
   isOpen,
   onClose,

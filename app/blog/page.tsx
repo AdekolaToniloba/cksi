@@ -1,7 +1,7 @@
+// app/blog/page.tsx
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, User, ArrowRight } from "lucide-react";
-import { BlogSearch } from "@/components/blog/blog-search"; // (We will create this small client comp)
+import { BlogSearch } from "@/components/blog/blog-search";
 import { formatDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -22,25 +22,33 @@ export const metadata: Metadata = {
 };
 
 interface BlogPageProps {
-  searchParams: {
+  // Update type definition to be a Promise
+  searchParams: Promise<{
     q?: string;
     category?: string;
     page?: string;
-  };
+  }>;
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const page = Number(searchParams.page) || 1;
+  // 1. Await the searchParams before using them
+  const resolvedSearchParams = await searchParams;
+
+  const q = resolvedSearchParams.q;
+  const category = resolvedSearchParams.category;
+  const pageParam = resolvedSearchParams.page;
+
+  const page = Number(pageParam) || 1;
   const limit = 9;
   const skip = (page - 1) * limit;
 
   const whereClause = {
     status: "PUBLISHED" as const,
-    ...(searchParams.category && { category: searchParams.category }),
-    ...(searchParams.q && {
+    ...(category && { category: category }),
+    ...(q && {
       OR: [
-        { title: { contains: searchParams.q, mode: "insensitive" as const } },
-        { excerpt: { contains: searchParams.q, mode: "insensitive" as const } },
+        { title: { contains: q, mode: "insensitive" as const } },
+        { excerpt: { contains: q, mode: "insensitive" as const } },
       ],
     }),
   };
@@ -56,7 +64,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     }),
     prisma.blogPost.count({ where: whereClause }),
     // Only fetch featured if on page 1 and no search filters
-    page === 1 && !searchParams.q && !searchParams.category
+    page === 1 && !q && !category
       ? prisma.blogPost.findFirst({
           where: { isFeatured: true, status: "PUBLISHED" },
           include: { author: { select: { name: true } } },
@@ -88,11 +96,9 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
       <div className="container px-4 mt-8">
         {/* Search & Filter Component */}
-        <BlogSearch
-          initialQuery={searchParams.q}
-          initialCategory={searchParams.category}
-        />
+        <BlogSearch initialQuery={q} initialCategory={category} />
 
+        {/* ... Rest of the component remains exactly the same, just using `gridPosts`, `featuredPost` etc ... */}
         {/* Featured Post Section */}
         {featuredPost && (
           <div className="my-12">

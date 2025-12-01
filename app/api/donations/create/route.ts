@@ -1,72 +1,52 @@
-// app/api/donations/create/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-// Generate payment reference function
-const generatePaymentReference = (prefix = "CKSI"): string => {
-  const timestamp = Date.now();
-  const randomStr = Math.random().toString(36).substr(2, 9);
-  return `${prefix}_${timestamp}_${randomStr}`;
-};
+import { logger } from "@/lib/monitoring/logger";
+import { metrics } from "@/lib/monitoring/metrics";
+import { generatePaymentReference } from "@/lib/utils";
+import { SecurityUtils } from "@/lib/security";
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
     const body = await request.json();
-    const {
-      amount,
-      donor_name,
-      donor_email,
-      donor_phone,
-      campaign_id,
-      is_anonymous,
-      donation_type,
-      wants_receipt,
-      wants_newsletter,
-    } = body;
+    const { amount, donor_email, currency = "NGN" } = body;
 
-    // Validate required fields
-    if (!amount || !donor_email) {
-      return NextResponse.json(
-        { error: "Amount and email are required" },
-        { status: 400 }
-      );
+    // 1. Input Sanitization & Validation
+    if (!amount || isNaN(Number(amount)) || Number(amount) < 100) {
+      return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(donor_email)) {
-      return NextResponse.json(
-        { error: "Invalid email format" },
-        { status: 400 }
-      );
+    const sanitizedEmail = SecurityUtils.sanitizeInput(donor_email);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitizedEmail)) {
+      return NextResponse.json({ error: "Invalid email" }, { status: 400 });
     }
 
-    // Validate amount
-    if (Number(amount) < 100) {
-      return NextResponse.json(
-        { error: "Minimum donation amount is ₦100" },
-        { status: 400 }
-      );
-    }
+    // 2. Create Record
+    const reference = generatePaymentReference();
 
-    // Generate payment reference
-    const payment_reference = generatePaymentReference();
-
-    // Create donation record
     const donation = await prisma.donation.create({
       data: {
-        donorName: is_anonymous ? null : donor_name,
-        donorEmail: donor_email,
-        donorPhone: donor_phone,
         amount: Number(amount),
-        currency: "NGN",
-        campaignId: campaign_id === "general" ? null : campaign_id,
-        paymentReference: payment_reference,
+        currency: SecurityUtils.sanitizeInput(currency),
+        donorEmail: sanitizedEmail,
+        donorName: body.is_anonymous
+          ? null
+          : SecurityUtils.sanitizeInput(body.donor_name || ""),
+        donorPhone: body.donor_phone
+          ? SecurityUtils.sanitizeInput(body.donor_phone)
+          : null,
+        paymentReference: reference,
         status: "PENDING",
-        isAnonymous: is_anonymous || false,
-        donationType: donation_type === "one-time" ? "ONE_TIME" : "MONTHLY",
+        isAnonymous: body.is_anonymous || false,
+        donationType: body.donation_type === "monthly" ? "MONTHLY" : "ONE_TIME",
+        // Removed campaignId logic as requested
       },
     });
+
+    // 3. Logging & Metrics
+    logger.info(`Donation initiated: ${reference}`, { amount, currency });
+    metrics.collect("donation_initiated", 1, "count", { currency });
 
     return NextResponse.json({
       id: donation.id,
@@ -74,10 +54,14 @@ export async function POST(request: NextRequest) {
       amount: donation.amount,
     });
   } catch (error) {
-    console.error("Server error:", error);
+    logger.error("Donation creation failed", { error });
     return NextResponse.json(
-      { error: "Server error occurred" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
+  } finally {
+    metrics.collect("api_latency", Date.now() - startTime, "ms", {
+      endpoint: "create_donation",
+    });
   }
 }

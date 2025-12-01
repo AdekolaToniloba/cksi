@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, User, ArrowLeft, Share2, Clock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
 interface Props {
   params: { slug: string };
@@ -55,6 +55,23 @@ export default async function BlogPostPage({ params }: Props) {
   // Calculate estimated read time (avg 200 words/min)
   const wordCount = post.content.replace(/<[^>]+>/g, "").split(/\s+/).length;
   const readTime = Math.ceil(wordCount / 200);
+
+  // Configure sanitizer options to allow images, links, and styling classes
+  const sanitizedContent = sanitizeHtml(post.content, {
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+      "img",
+      "h1",
+      "h2",
+      "span",
+      "div",
+    ]),
+    allowedAttributes: {
+      ...sanitizeHtml.defaults.allowedAttributes,
+      "*": ["class", "style"], // Allow styling classes from Tiptap
+      img: ["src", "alt", "width", "height"],
+    },
+    allowedSchemes: ["http", "https", "mailto", "tel"],
+  });
 
   return (
     <div className="min-h-screen bg-white pb-20">
@@ -145,10 +162,10 @@ export default async function BlogPostPage({ params }: Props) {
               prose-blockquote:border-l-4 prose-blockquote:border-blue-600 prose-blockquote:bg-blue-50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
               prose-li:marker:text-blue-600"
             >
-              {/* Safe HTML Rendering */}
+              {/* Safe HTML Rendering with sanitize-html */}
               <div
                 dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(post.content),
+                  __html: sanitizedContent, // <--- UPDATED VARIABLE
                 }}
               />
             </div>

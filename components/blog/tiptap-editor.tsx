@@ -35,7 +35,7 @@ export default function TiptapEditor({ content, onChange }: TiptapEditorProps) {
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: "text-blue-600 underline",
+          class: "text-blue-600 underline cursor-pointer",
         },
       }),
       Image.configure({
@@ -54,7 +54,7 @@ export default function TiptapEditor({ content, onChange }: TiptapEditorProps) {
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm sm:prose-base lg:prose-lg max-w-none focus:outline-none min-h-[300px] p-4",
+          "prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl m-5 max-w-none focus:outline-none min-h-[300px]",
       },
     },
     onUpdate: ({ editor }) => {

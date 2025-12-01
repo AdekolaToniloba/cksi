@@ -1,84 +1,57 @@
-// app/api/donations/list/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/monitoring/logger";
+import { metrics } from "@/lib/monitoring/metrics";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  const start = Date.now();
   try {
     const { searchParams } = new URL(request.url);
-
-    // Parse query parameters
     const status = searchParams.get("status");
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
-    const limit = searchParams.get("limit");
-    const offset = searchParams.get("offset");
-    const includeStats = searchParams.get("includeStats") === "true";
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const offset = parseInt(searchParams.get("offset") || "0");
 
-    // Build filters
     const where: any = {};
-
-    if (status && status !== "all") {
+    if (status && ["COMPLETED", "PENDING", "FAILED"].includes(status)) {
       where.status = status;
     }
 
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) {
-        where.createdAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.createdAt.lte = new Date(endDate);
-      }
-    }
+    const [donations, total] = await Promise.all([
+      prisma.donation.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.donation.count({ where }),
+    ]);
 
-    // Fetch donations
-    const donations = await prisma.donation.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      take: limit ? parseInt(limit) : undefined,
-      skip: offset ? parseInt(offset) : undefined,
+    const totalRaised = await prisma.donation.aggregate({
+      where: { status: "COMPLETED" },
+      _sum: { amount: true },
     });
 
-    // Fetch stats if requested
-    let stats = null;
-    if (includeStats) {
-      const [total, completed, pending, failed] = await Promise.all([
-        prisma.donation.count(),
-        prisma.donation.count({ where: { status: "COMPLETED" } }),
-        prisma.donation.count({ where: { status: "PENDING" } }),
-        prisma.donation.count({ where: { status: "FAILED" } }),
-      ]);
+    // FIX: Use the metrics variable
+    metrics.collect("admin_donation_list_view", 1, "count");
+    metrics.collect("admin_donation_list_latency", Date.now() - start, "ms");
 
-      const totalAmountResult = await prisma.donation.aggregate({
-        where: { status: "COMPLETED" },
-        _sum: { amount: true },
-      });
-
-      stats = {
-        total,
-        completed,
-        pending,
-        failed,
-        totalAmount: totalAmountResult._sum.amount || 0,
-      };
-    }
+    logger.info("Admin accessed donation list", { count: donations.length });
 
     return NextResponse.json({
       success: true,
       data: donations,
-      stats,
-      filters: {
-        status,
-        startDate,
-        endDate,
-        limit: limit ? parseInt(limit) : null,
-        offset: offset ? parseInt(offset) : null,
+      meta: {
+        total,
+        total_raised: totalRaised._sum.amount || 0,
+        page: Math.floor(offset / limit) + 1,
       },
     });
   } catch (error) {
-    console.error("Error fetching donations:", error);
+    logger.error("Admin donation list fetch failed", { error });
     return NextResponse.json(
-      { success: false, error: "Failed to fetch donations" },
+      { error: "Failed to fetch data" },
       { status: 500 }
     );
   }

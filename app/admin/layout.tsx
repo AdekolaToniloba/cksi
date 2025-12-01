@@ -1,3 +1,4 @@
+// cksi/app/admin/layout.tsx
 "use client";
 
 import type React from "react";
@@ -22,8 +23,9 @@ import {
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Blog Posts", href: "/admin/blog", icon: FileText },
-  { name: "Programs", href: "/admin/programs", icon: Users },
+  // { name: "Programs", href: "/admin/programs", icon: Users },
   { name: "Gallery", href: "/admin/gallery", icon: ImageIcon },
+  { name: "Media", href: "/admin/media", icon: ImageIcon },
   { name: "Homepage", href: "/admin/homepage", icon: Home },
   { name: "Donations", href: "/admin/donations", icon: DollarSign },
 ];

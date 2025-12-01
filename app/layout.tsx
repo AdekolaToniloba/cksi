@@ -1,18 +1,17 @@
+// cksi/app/layout.tsx
 import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/header";
 import { Toast } from "@/components/ui/toast";
-import { Footer } from "@/components/footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GlobalAlertDialog } from "@/components/global-alert-dialog";
 import { Providers } from "@/components/providers/session-provider";
 import { CookieProvider } from "@/components/cookies/CookieProvider";
-import { Navbar } from "@/components/layout/header/navbar";
 import Script from "next/script";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { CookieConsentManager } from "@/components/cookies/cookieConsentManager";
+import { MainLayout } from "@/components/layout/main-layout"; // Import the new component
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,7 +34,6 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_NG",
   },
-  generator: "v0.dev",
 };
 
 export default function RootLayout({
@@ -55,12 +53,9 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <div className="flex flex-col min-h-screen">
-                {/* <Header /> */}
-                <Navbar />
-                <main className="flex-1">{children}</main>
-                <Footer />
-              </div>
+              {/* Replace direct Navbar/Main/Footer with the conditional wrapper */}
+              <MainLayout>{children}</MainLayout>
+
               <GlobalAlertDialog />
               <Toast />
             </ThemeProvider>

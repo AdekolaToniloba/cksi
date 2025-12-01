@@ -11,7 +11,6 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // Apply these headers to all routes
         source: '/:path*',
         headers: [
           {
@@ -24,11 +23,11 @@ const nextConfig = {
           },
           {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN' // Prevents clickjacking (admin page inside iframe)
+            value: 'SAMEORIGIN'
           },
           {
             key: 'X-Content-Type-Options',
-            value: 'nosniff' // Prevents MIME sniffing
+            value: 'nosniff'
           },
           {
             key: 'Referrer-Policy',
@@ -36,8 +35,16 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            // Customize this policy based on your needs (Cloudinary, Vitals, Scripts)
-            value: "default-src 'self'; img-src 'self' https://res.cloudinary.com data:; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.paystack.co; style-src 'self' 'unsafe-inline'; frame-src https://js.paystack.co;"
+            // UPDATED POLICY BELOW:
+            value: `
+              default-src 'self';
+              script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.paystack.co https://www.googletagmanager.com;
+              style-src 'self' 'unsafe-inline' https://paystack.com https://fonts.googleapis.com;
+              img-src 'self' blob: data: https://res.cloudinary.com https://*.paystack.com https://assets.paystack.com https://www.google-analytics.com;
+              font-src 'self' data: https://fonts.gstatic.com;
+              frame-src 'self' https://js.paystack.co https://checkout.paystack.com https://standard.paystack.co;
+              connect-src 'self' ws: wss: https://js.paystack.co https://checkout.paystack.com https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net;
+            `.replace(/\s{2,}/g, ' ').trim()
           }
         ]
       }
