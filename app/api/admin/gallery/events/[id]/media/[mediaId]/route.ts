@@ -1,8 +1,8 @@
-// app/api/admin/gallery/events/[id]/media/[mediaId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuth } from "@/lib/auth-helpers";
 import { v2 as cloudinary } from "cloudinary";
+type RouteParams = Promise<{ id: string; mediaId: string }>;
 
 // Configure Cloudinary
 cloudinary.config({
@@ -13,18 +13,21 @@ cloudinary.config({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; mediaId: string } }
+  { params }: { params: Promise<{ id: string; mediaId: string }> } // FIX 1: Promise Type
 ) {
   try {
     await requireAdminAuth();
+
+    // FIX 2: Await params
+    const { id, mediaId } = await params;
 
     const body = await request.json();
     const { title, description, isPublished, orderIndex } = body;
 
     const media = await prisma.galleryMedia.update({
       where: {
-        id: params.mediaId,
-        eventId: params.id,
+        id: mediaId, // FIX 3: Use the extracted variable, NOT params.mediaId
+        eventId: id, // FIX 4: Use the extracted variable, NOT params.id
       },
       data: {
         ...(title !== undefined && { title }),
@@ -64,16 +67,17 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; mediaId: string } }
+  { params }: { params: Promise<{ id: string; mediaId: string }> }
 ) {
   try {
     await requireAdminAuth();
+    const { id, mediaId } = await params;
 
     // Get media details first
     const media = await prisma.galleryMedia.findUnique({
       where: {
-        id: params.mediaId,
-        eventId: params.id,
+        id: mediaId, // FIX 5: Use extracted variable
+        eventId: id, // FIX 6: Use extracted variable
       },
     });
 
@@ -90,15 +94,14 @@ export async function DELETE(
         });
       } catch (cloudinaryError) {
         console.error("Failed to delete from Cloudinary:", cloudinaryError);
-        // Continue with database deletion even if Cloudinary deletion fails
       }
     }
 
     // Delete from database
     await prisma.galleryMedia.delete({
       where: {
-        id: params.mediaId,
-        eventId: params.id,
+        id: mediaId, // FIX 7: Use extracted variable
+        eventId: id, // FIX 8: Use extracted variable
       },
     });
 
