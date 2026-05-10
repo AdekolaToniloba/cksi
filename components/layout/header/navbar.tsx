@@ -279,11 +279,10 @@ function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
       {/* Trigger Button */}
       <button
         className={cn(
-          "group flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 relative z-50",
-          "text-slate-600 hover:text-blue-600 hover:bg-blue-50/80",
-          "dark:text-slate-300 dark:hover:text-blue-400 dark:hover:bg-blue-950/30",
+          "group flex items-center gap-1 px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-cksi-brand-red relative z-50",
+          "text-cksi-dark/80 hover:text-cksi-brand-red hover:bg-cksi-brand-red/5 font-sans",
           isOpen &&
-            "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/30 shadow-sm ring-1 ring-blue-100 dark:ring-blue-900"
+            "text-cksi-brand-red bg-cksi-brand-red/10 shadow-sm ring-1 ring-cksi-brand-red/20"
         )}
         aria-expanded={isOpen}
         aria-haspopup="true"
@@ -324,23 +323,26 @@ function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
 
                 <div className="px-4 md:px-6 lg:px-8 pt-2">
                   <div className="mx-auto w-full max-w-[1400px]">
-                    <div className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-blue-900/10 border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                    <div className="bg-cksi-brand-surface rounded-2xl shadow-[0_12px_40px_-12px_rgba(28,25,23,0.15)] border border-gray-200/60 overflow-hidden">
                       <div className="grid grid-cols-12 min-h-[350px]">
                         {/* SECTION 1: Summary */}
-                        <div className="col-span-3 bg-slate-50/50 dark:bg-slate-900/30 p-8 flex flex-col justify-between border-r border-slate-100 dark:border-slate-800">
+                        <div className="col-span-4 p-8 flex flex-col justify-between border-r border-gray-100 bg-transparent">
                           <motion.div variants={itemVariants}>
-                            <h3 className="text-2xl font-bold text-blue-950 dark:text-blue-50 mb-4 tracking-tight">
-                              {dropdown.label}
+                            <span className="block text-[11px] font-bold text-cksi-blue-dark uppercase tracking-widest mb-4">
+                              WHO WE ARE
+                            </span>
+                            <h3 className="text-3xl font-serif text-cksi-dark mb-4 tracking-tight leading-snug">
+                              Our mission, story, and the people behind CKSI
                             </h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                              {dropdown.description}
+                            <p className="text-sm text-cksi-gray leading-relaxed font-sans">
+                              We are dedicated to improving healthcare outcomes through community-driven initiatives.
                             </p>
                           </motion.div>
                           {dropdown.href && (
                             <motion.div variants={itemVariants}>
                               <Link
                                 href={dropdown.href}
-                                className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 mt-6 group"
+                                className="inline-flex items-center gap-2 text-sm font-bold text-cksi-brand-red hover:text-cksi-brand-red/80 font-sans mt-6 group"
                               >
                                 View Overview
                                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -350,31 +352,22 @@ function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
                         </div>
 
                         {/* SECTION 2: Links */}
-                        <div className="col-span-5 p-8">
-                          <motion.p
-                            variants={itemVariants}
-                            className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6"
-                          >
-                            Direct Links
-                          </motion.p>
-                          <div className="grid gap-2">
+                        <div className="col-span-4 p-8 py-10">
+                          <div className="grid gap-6">
                             {dropdown.items.map((item, i) => (
                               <motion.div key={item.id} variants={itemVariants}>
                                 <Link
                                   href={item.href}
-                                  className="group flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-200 border border-transparent hover:border-slate-100 dark:hover:border-slate-800 hover:shadow-sm"
+                                  className="group flex flex-col"
                                 >
-                                  <div>
-                                    <span className="block text-base font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                      {item.label}
+                                  <span className="block text-lg font-bold font-sans text-cksi-dark group-hover:text-cksi-brand-red transition-colors">
+                                    {item.label}
+                                  </span>
+                                  {item.description && (
+                                    <span className="block text-sm font-sans text-cksi-gray mt-1 transition-colors group-hover:text-cksi-dark/70">
+                                      {item.description}
                                     </span>
-                                    {item.description && (
-                                      <span className="block text-sm text-slate-500 dark:text-slate-400 mt-1 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-300">
-                                        {item.description}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <ArrowRight className="h-4 w-4 text-blue-200 dark:text-blue-900 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                                  )}
                                 </Link>
                               </motion.div>
                             ))}
@@ -384,7 +377,7 @@ function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
                         {/* SECTION 3: Image */}
                         <div className="col-span-4 relative p-4">
                           <motion.div
-                            className="absolute inset-4 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 shadow-inner"
+                            className="absolute inset-4 rounded-[12px] overflow-hidden shadow-inner"
                             variants={imageVariants}
                           >
                             {dropdown.image ? (
@@ -395,19 +388,21 @@ function DesktopDropdown({ dropdown }: { dropdown: NavigationDropdown }) {
                                   fill
                                   className="object-cover transition-transform duration-700 hover:scale-105"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-blue-950/90 via-blue-950/20 to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-0 transition-transform duration-300">
-                                  <span className="inline-block px-3 py-1 bg-blue-600/90 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider rounded mb-2 shadow-lg">
-                                    Featured
+                                <div className="absolute inset-0 bg-gradient-to-t from-cksi-dark/80 via-transparent to-transparent" />
+                                <div className="absolute top-0 left-0 p-4">
+                                  <span className="inline-block px-3 py-1 bg-cksi-brand-red text-white text-[10px] font-bold font-sans uppercase tracking-wider shadow-sm">
+                                    OUR TEAM
                                   </span>
-                                  <p className="text-white font-medium text-lg leading-tight">
-                                    {dropdown.imageAlt}
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 p-6">
+                                  <p className="text-white font-serif text-2xl leading-tight">
+                                    The people driving change
                                   </p>
                                 </div>
                               </>
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <span className="font-bold text-slate-300 text-2xl">
+                              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                <span className="font-bold text-gray-300 text-2xl">
                                   CKSI
                                 </span>
                               </div>
@@ -441,11 +436,11 @@ function MobileMenu({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent
         side="right"
-        className="w-[300px] sm:w-[400px] p-0 border-l-slate-200 dark:border-slate-800"
+        className="w-[300px] sm:w-[400px] p-0 border-l-gray-200"
       >
-        <div className="flex flex-col h-full bg-white dark:bg-slate-950">
-          <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-            <span className="font-bold text-xl tracking-tight text-blue-950 dark:text-blue-50">
+        <div className="flex flex-col h-full bg-cksi-brand-surface">
+          <div className="p-6 border-b border-gray-100">
+            <span className="font-serif font-bold text-2xl tracking-tight text-cksi-dark">
               CKSI
             </span>
           </div>
@@ -457,7 +452,10 @@ function MobileMenu({
                   onClick={() =>
                     setActiveTab(activeTab === section.id ? null : section.id)
                   }
-                  className="flex items-center justify-between w-full py-3 text-lg font-bold text-slate-900 dark:text-slate-100"
+                  className={cn(
+                    "flex items-center justify-between w-full py-3 text-2xl font-serif tracking-tight",
+                    activeTab === section.id ? "text-cksi-brand-red" : "text-cksi-dark"
+                  )}
                 >
                   {section.label}
                   <ChevronDown
@@ -476,13 +474,13 @@ function MobileMenu({
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="pl-4 space-y-2 pb-4 border-l-2 border-blue-100 dark:border-blue-900 ml-2">
+                      <div className="pl-4 space-y-4 pt-2 pb-4 border-l-2 border-cksi-brand-red ml-2">
                         {section.items.map((item) => (
                           <Link
                             key={item.id}
                             href={item.href}
                             onClick={onClose}
-                            className="block py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+                            className="block text-base font-sans font-medium text-cksi-dark hover:text-cksi-brand-red transition-colors"
                           >
                             {item.label}
                           </Link>
@@ -495,24 +493,33 @@ function MobileMenu({
             ))}
           </div>
 
-          <div className="p-6 bg-slate-50 dark:bg-slate-900 space-y-4">
+          <div className="p-6 bg-white space-y-4 shadow-[0_-4px_24px_-8px_rgba(0,0,0,0.05)]">
             <Button
               asChild
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full bg-cksi-brand-red hover:bg-cksi-brand-red/90 text-white rounded-full font-sans"
               size="lg"
             >
               <Link href="/donate" onClick={onClose}>
-                Donate Now
+                Donate
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="w-full border-2 border-cksi-dark text-cksi-dark hover:bg-gray-50 rounded-full font-sans bg-transparent"
+              size="lg"
+            >
+              <Link href="/contact" onClick={onClose}>
+                Contact Us
               </Link>
             </Button>
             <div className="flex justify-between items-center">
-              <ThemeToggle />
-              <div className="flex gap-4 text-slate-400">
+              <div className="flex gap-4 text-cksi-gray">
                 <Link href="https://facebook.com">
-                  <Facebook className="h-5 w-5 hover:text-blue-600" />
+                  <Facebook className="h-5 w-5 hover:text-cksi-brand-red" />
                 </Link>
                 <Link href="https://instagram.com">
-                  <Instagram className="h-5 w-5 hover:text-pink-600" />
+                  <Instagram className="h-5 w-5 hover:text-cksi-brand-red" />
                 </Link>
               </div>
             </div>
@@ -537,25 +544,25 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full h-16 transition-all duration-300 border-b",
+        "fixed top-0 z-50 w-full h-16 transition-all duration-300",
         isScrolled
-          ? "bg-white/95 dark:bg-slate-950/95 backdrop-blur-md shadow-sm border-slate-200 dark:border-slate-800"
-          : "bg-white dark:bg-slate-950 border-transparent"
+          ? "bg-cksi-brand-surface shadow-[0_4px_24px_-8px_rgba(28,25,23,0.08)] border-b border-gray-200"
+          : "bg-cksi-brand-surface border-transparent"
       )}
     >
       <div className="h-full max-w-[1400px] mx-auto flex items-center justify-between px-4 md:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group z-50">
-          <div className="relative w-10 h-10 overflow-hidden rounded-lg bg-blue-50 dark:bg-blue-900/20 p-1">
-            <div className="w-full h-full bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xs">
+          <div className="relative w-10 h-10 overflow-hidden rounded-md bg-cksi-brand-red/10 p-1">
+            <div className="w-full h-full bg-cksi-brand-red rounded flex items-center justify-center text-white font-serif font-bold text-xs">
               CKSI
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold leading-none text-slate-900 dark:text-white tracking-tight group-hover:text-blue-600 transition-colors">
+            <span className="text-xl font-serif font-bold leading-none text-cksi-dark tracking-tight group-hover:text-cksi-brand-red transition-colors">
               CKSI
             </span>
-            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
+            <span className="text-[10px] font-sans font-bold text-cksi-gray uppercase tracking-widest mt-0.5">
               Social Initiative
             </span>
           </div>
@@ -570,12 +577,9 @@ export function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-3 z-50">
-          <div className="hidden md:block">
-            <ThemeToggle />
-          </div>
           <Button
             asChild
-            className="hidden sm:flex bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 shadow-lg shadow-blue-600/20"
+            className="hidden sm:flex bg-cksi-brand-red hover:bg-cksi-brand-red/90 text-white rounded-full px-6 shadow-sm font-sans font-semibold"
             size="sm"
           >
             <Link href="/donate">Donate</Link>
@@ -583,7 +587,7 @@ export function Navbar() {
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="lg:hidden text-cksi-dark hover:bg-cksi-brand-red/10 hover:text-cksi-brand-red"
             onClick={() => setMobileOpen(true)}
           >
             <Menu className="h-6 w-6" />

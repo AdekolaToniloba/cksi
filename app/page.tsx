@@ -11,7 +11,7 @@ import { NewsletterPopup } from "@/components/newsletter-popup";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
       <HeroSection />
 
       {/* Add breathing room between sections with padding */}

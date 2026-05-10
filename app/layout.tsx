@@ -1,7 +1,8 @@
 // cksi/app/layout.tsx
 import type React from "react";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { DM_Serif_Display } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Toast } from "@/components/ui/toast";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -13,7 +14,21 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { CookieConsentManager } from "@/components/cookies/cookieConsentManager";
 import { MainLayout } from "@/components/layout/main-layout"; // Import the new component
 
-const inter = Inter({ subsets: ["latin"] });
+const dmSerif = DM_Serif_Display({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  variable: "--font-dm-serif",
+  display: "swap",
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-jakarta",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "CKSI - Couples and Kids Social Initiatives",
@@ -42,8 +57,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning className={`${dmSerif.variable} ${jakarta.variable}`}>
+      <body className="font-sans bg-cksi-warm text-cksi-dark antialiased">
         <Providers>
           <CookieProvider>
             <CookieConsentManager />

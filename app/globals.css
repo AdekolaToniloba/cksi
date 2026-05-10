@@ -92,3 +92,154 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer base {
+  h1, h2, h3, h4 {
+    @apply font-serif text-cksi-dark;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl 
+           leading-tight tracking-tight;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl leading-snug;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl leading-snug;
+  }
+
+  p {
+    @apply font-sans text-cksi-body leading-relaxed;
+  }
+
+  a {
+    @apply transition-colors duration-150;
+  }
+
+  ::selection {
+    @apply bg-cksi-red-light text-cksi-dark;
+  }
+}
+
+@layer components {
+
+  /* Eyebrow labels — used above every section heading */
+  .eyebrow {
+    @apply font-sans text-[11px] font-medium uppercase 
+           tracking-[0.12em] text-cksi-red;
+  }
+
+  /* Layout containers */
+  .container-base {
+    @apply max-w-[1200px] mx-auto 
+           px-4 sm:px-6 md:px-8 lg:px-[4rem];
+  }
+
+  .section-padding {
+    @apply py-14 md:py-20;
+  }
+
+  /* Primary button — red pill */
+  .btn-primary {
+    @apply bg-cksi-red text-white font-sans font-medium 
+           text-sm px-6 py-3 rounded-pill 
+           hover:bg-cksi-red-hover 
+           active:scale-[0.98]
+           transition-all duration-150 
+           inline-flex items-center gap-2
+           whitespace-nowrap;
+  }
+
+  /* Ghost button — red outline, for light backgrounds */
+  .btn-ghost {
+    @apply border border-cksi-red text-cksi-red 
+           font-sans font-medium text-sm 
+           px-6 py-3 rounded-pill 
+           hover:bg-cksi-red-muted 
+           active:scale-[0.98]
+           transition-all duration-150 
+           inline-flex items-center gap-2
+           whitespace-nowrap;
+  }
+
+  /* Ghost button — white outline, for dark backgrounds */
+  .btn-ghost-white {
+    @apply border border-white text-white 
+           font-sans font-medium text-sm 
+           px-6 py-3 rounded-pill 
+           hover:bg-white/10 
+           active:scale-[0.98]
+           transition-all duration-150 
+           inline-flex items-center gap-2
+           whitespace-nowrap;
+  }
+
+  /* Ghost button — dark outline, for neutral contexts */
+  .btn-ghost-dark {
+    @apply border border-cksi-dark text-cksi-dark 
+           font-sans font-medium text-sm 
+           px-6 py-3 rounded-pill 
+           hover:bg-cksi-grey-divider
+           active:scale-[0.98]
+           transition-all duration-150 
+           inline-flex items-center gap-2
+           whitespace-nowrap;
+  }
+
+  /* Base card */
+  .card-base {
+    @apply bg-white rounded-card 
+           border border-cksi-grey-light;
+  }
+
+  /* Card inside dark sections */
+  .card-dark {
+    @apply bg-cksi-dark-card rounded-card 
+           border border-cksi-dark-border;
+  }
+
+  /* Icon container — red (on light backgrounds) */
+  .icon-container-red {
+    @apply bg-cksi-red-light text-cksi-red 
+           rounded-icon p-2 
+           inline-flex items-center justify-center;
+  }
+
+  /* Icon container — blue (on blue/white backgrounds) */
+  .icon-container-blue {
+    @apply bg-cksi-blue-mid text-cksi-blue-dark 
+           rounded-icon p-2 
+           inline-flex items-center justify-center;
+  }
+
+  /* Icon container — on dark backgrounds */
+  .icon-container-dark {
+    @apply bg-white/10 text-white 
+           rounded-icon p-2 
+           inline-flex items-center justify-center;
+  }
+
+  /* Stat block — number + label stacked */
+  .stat-number {
+    @apply font-serif text-cksi-red leading-none;
+  }
+
+  .stat-label {
+    @apply font-sans text-sm text-cksi-grey-muted mt-1;
+  }
+
+  /* Form input baseline */
+  .input-base {
+    @apply w-full bg-cksi-warm border border-cksi-grey-light 
+           rounded-input px-4 py-3 
+           font-sans text-sm text-cksi-dark
+           placeholder:text-cksi-grey-muted
+           focus:outline-none focus:ring-2 
+           focus:ring-cksi-red focus:border-transparent
+           transition-all duration-150;
+  }
+
+}

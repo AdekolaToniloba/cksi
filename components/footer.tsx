@@ -6,41 +6,43 @@ import { Input } from "@/components/ui/input"
 
 export function Footer() {
   return (
-    <footer className="bg-gradient-to-br from-muted/50 to-secondary/5 border-t">
-      <div className="container py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="bg-cksi-brand-dark text-cksi-brand-light border-t-2 border-cksi-brand-red font-sans">
+      <div className="container mx-auto px-4 py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1400px] mx-auto">
           {/* Brand */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center space-x-3">
-              <div className="relative w-10 h-10">
-                <Image src="/cksi-logo.png" alt="CKSI Logo" fill className="object-contain" />
+              <div className="relative w-10 h-10 overflow-hidden rounded-md bg-cksi-red/10 p-1">
+                <div className="w-full h-full bg-cksi-brand-red rounded flex items-center justify-center text-cksi-brand-light font-serif font-bold text-xs">
+                  CKSI
+                </div>
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold">CKSI</span>
-                <span className="text-xs text-secondary font-medium">Social Initiative</span>
+                <span className="text-xl font-serif font-bold text-cksi-brand-light tracking-tight">CKSI</span>
+                <span className="text-[10px] text-cksi-brand-red font-bold uppercase tracking-widest mt-0.5">Social Initiative</span>
               </div>
             </Link>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-cksi-brand-light/80">
               Empowering families and children across Nigeria through education, healthcare, and community development
               programs.
             </p>
             <div className="flex space-x-2">
-              <Button variant="ghost" size="icon" asChild className="hover:bg-secondary/10 hover:text-secondary">
+              <Button variant="ghost" size="icon" asChild className="hover:bg-white/10 text-cksi-brand-light/80 hover:text-cksi-brand-light rounded-full">
                 <Link href="#" aria-label="Facebook">
                   <Facebook className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" asChild className="hover:bg-secondary/10 hover:text-secondary">
+              <Button variant="ghost" size="icon" asChild className="hover:bg-white/10 text-cksi-brand-light/80 hover:text-cksi-brand-light rounded-full">
                 <Link href="#" aria-label="Twitter">
                   <Twitter className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" asChild className="hover:bg-secondary/10 hover:text-secondary">
+              <Button variant="ghost" size="icon" asChild className="hover:bg-white/10 text-cksi-brand-light/80 hover:text-cksi-brand-light rounded-full">
                 <Link href="#" aria-label="Instagram">
                   <Instagram className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" asChild className="hover:bg-secondary/10 hover:text-secondary">
+              <Button variant="ghost" size="icon" asChild className="hover:bg-white/10 text-cksi-brand-light/80 hover:text-cksi-brand-light rounded-full">
                 <Link href="#" aria-label="LinkedIn">
                   <Linkedin className="h-4 w-4" />
                 </Link>
@@ -50,21 +52,21 @@ export function Footer() {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Quick Links</h3>
+            <h3 className="text-lg font-semibold text-cksi-brand-light">Quick Links</h3>
             <nav className="flex flex-col space-y-2">
-              <Link href="/about" className="text-sm text-muted-foreground hover:text-secondary transition-colors">
+              <Link href="/about" className="text-sm text-cksi-brand-light/80 hover:text-cksi-brand-light transition-colors">
                 About Us
               </Link>
-              <Link href="/programs" className="text-sm text-muted-foreground hover:text-secondary transition-colors">
+              <Link href="/programs" className="text-sm text-cksi-brand-light/80 hover:text-cksi-brand-light transition-colors">
                 Our Programs
               </Link>
-              <Link href="/gallery" className="text-sm text-muted-foreground hover:text-secondary transition-colors">
+              <Link href="/gallery" className="text-sm text-cksi-brand-light/80 hover:text-cksi-brand-light transition-colors">
                 Gallery
               </Link>
-              <Link href="/blog" className="text-sm text-muted-foreground hover:text-secondary transition-colors">
+              <Link href="/blog" className="text-sm text-cksi-brand-light/80 hover:text-cksi-brand-light transition-colors">
                 Blog
               </Link>
-              <Link href="/contact" className="text-sm text-muted-foreground hover:text-secondary transition-colors">
+              <Link href="/contact" className="text-sm text-cksi-brand-light/80 hover:text-cksi-brand-light transition-colors">
                 Contact
               </Link>
             </nav>
@@ -72,18 +74,18 @@ export function Footer() {
 
           {/* Contact Info */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Contact Info</h3>
+            <h3 className="text-lg font-semibold text-cksi-brand-light">Contact Info</h3>
             <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 text-secondary" />
+              <div className="flex items-center space-x-2 text-sm text-cksi-brand-light/80">
+                <MapPin className="h-4 w-4 text-cksi-brand-red" />
                 <span>Lagos, Nigeria</span>
               </div>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4 text-secondary" />
+              <div className="flex items-center space-x-2 text-sm text-cksi-brand-light/80">
+                <Phone className="h-4 w-4 text-cksi-brand-red" />
                 <span>+234 123 456 7890</span>
               </div>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4 text-secondary" />
+              <div className="flex items-center space-x-2 text-sm text-cksi-brand-light/80">
+                <Mail className="h-4 w-4 text-cksi-brand-red" />
                 <span>info@cksi.org.ng</span>
               </div>
             </div>
@@ -91,20 +93,20 @@ export function Footer() {
 
           {/* Newsletter */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Stay Updated</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="text-lg font-semibold text-cksi-brand-light">Stay Updated</h3>
+            <p className="text-sm text-cksi-brand-light/80">
               Subscribe to our newsletter for updates on our programs and impact.
             </p>
             <div className="flex space-x-2">
-              <Input placeholder="Your email" type="email" className="flex-1" />
-              <Button type="submit" className="bg-secondary hover:bg-secondary/90">
+              <Input placeholder="Your email" type="email" className="flex-1 bg-cksi-warm text-cksi-dark border-gray-600 focus:border-cksi-brand-red rounded-md placeholder:text-gray-400" />
+              <Button type="submit" className="bg-cksi-brand-red hover:bg-cksi-brand-red/90 text-white rounded-full font-semibold px-6">
                 Subscribe
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
+        <div className="mt-8 pt-8 border-t border-cksi-brand-light/10 text-center text-sm text-cksi-brand-light/60 max-w-[1400px] mx-auto">
           <p>&copy; {new Date().getFullYear()} Couples and Kids Social Initiatives (CKSI). All rights reserved.</p>
         </div>
       </div>

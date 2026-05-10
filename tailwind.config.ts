@@ -7,7 +7,6 @@ const config = {
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "*.{js,ts,jsx,tsx,mdx}",
   ],
   prefix: "",
   theme: {
@@ -20,64 +19,131 @@ const config = {
     },
     extend: {
       colors: {
+        cksi: {
+          red: '#E24B4A',
+          'brand-red': '#AF262A',
+          'red-hover': '#C94040',
+          'red-light': '#FEE2E2',
+          'red-muted': '#FEF2F2',
+          blue: '#EFF8FD',
+          'blue-mid': '#C8E6F5',
+          'blue-dark': '#0C4A6E',
+          grey: '#6B7280',
+          'grey-light': '#E5E7EB',
+          'grey-muted': '#9CA3AF',
+          'grey-divider': '#F3F4F6',
+          warm: '#FAF8F5',
+          'brand-surface': '#F9F9FF',
+          dark: '#1C1917',
+          'brand-dark': '#151C27',
+          'brand-light': '#DCE2F3',
+          'dark-card': '#242424',
+          'dark-border': '#2D2D2D',
+          'dark-surface': '#374151',
+          body: '#4B5563',
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+
+        // --- NITHUB BRAND IDENTITY ---
         primary: {
-          DEFAULT: "#DC2626", // CKSI Red
+          DEFAULT: "#00A651", // NITHUB Main Green
           foreground: "#FFFFFF",
-          50: "#FEF2F2",
-          100: "#FEE2E2",
-          200: "#FECACA",
-          300: "#FCA5A5",
-          400: "#F87171",
-          500: "#EF4444",
-          600: "#DC2626",
-          700: "#B91C1C",
-          800: "#991B1B",
-          900: "#7F1D1D",
+          // Generated shades for hover states
+          50: "#E5F7ED",
+          100: "#BDEBD1",
+          200: "#92DEB3",
+          300: "#63D093",
+          400: "#32C172",
+          500: "#00A651", // Base
+          600: "#008A43",
+          700: "#006E35",
+          800: "#005328",
+          900: "#003A1C",
         },
         secondary: {
-          DEFAULT: "#2563EB", // CKSI Blue
+          DEFAULT: "#0B1630", // NITHUB Deep Blue
           foreground: "#FFFFFF",
-          50: "#EFF6FF",
-          100: "#DBEAFE",
-          200: "#BFDBFE",
-          300: "#93C5FD",
-          400: "#60A5FA",
-          500: "#3B82F6",
-          600: "#2563EB",
-          700: "#1D4ED8",
-          800: "#1E40AF",
-          900: "#1E3A8A",
+          50: "#E7E8EB",
+          100: "#C3C6CC",
+          200: "#9CA1AB",
+          300: "#757C8C",
+          400: "#4F596F",
+          500: "#2B3854",
+          600: "#0B1630", // Base
+          700: "#081024",
+          800: "#060B19",
+          900: "#03060D",
+        },
+        // Explicit "Bright" Green for highlights/accents
+        accent: {
+          DEFAULT: "#20C20E",
+          foreground: "#0B1630",
+        },
+
+        // --- FEEDBACK COLORS ---
+        success: {
+          DEFAULT: "#3AD500",
+          foreground: "#FFFFFF",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "#D30B0B", // Main Error Red
+          foreground: "#FFFFFF",
+          hover: "#DD2C2C", // Lighter Red for hover
+          soft: "#F2E0E0", // Background for error alerts
         },
+
+        // --- NEUTRALS (Mapped from your Hues List) ---
+        neutral: {
+          900: "#222222", // Darkest text
+          800: "#3B3B3B",
+          700: "#515151",
+          600: "#626262",
+          500: "#7E7E7E", // Medium grey
+          400: "#9E9E9E",
+          300: "#B1B1B1",
+          200: "#C4C4C4",
+          100: "#CFCFCF",
+          50: "#E1E1E1", // Lightest background grey
+        },
+
+        // --- SHADCN DEFAULTS (Mapped to Brand) ---
         muted: {
-          DEFAULT: "#F3F4F6", // Light grey
-          foreground: "#6B7280", // Medium grey
-        },
-        accent: {
-          DEFAULT: "#E5E7EB", // Light grey accent
-          foreground: "#374151", // Dark grey
+          DEFAULT: "#E1E1E1", // Using lightest neutral
+          foreground: "#7E7E7E",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "#FFFFFF",
+          foreground: "#0B1630",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "#FFFFFF",
+          foreground: "#0B1630",
         },
+      },
+      fontFamily: {
+        serif: ['var(--font-dm-serif)', 'Georgia', 'serif'],
+        sans: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
+      },
+      spacing: {
+        'section': '6rem',
+        'section-sm': '4rem',
+        'container-x': '4rem',
+        'container-x-mobile': '1rem',
+        'gutter': '1.5rem',
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        'card': '1rem',
+        'card-lg': '1.25rem',
+        'pill': '9999px',
+        'icon': '0.5rem',
+        'input': '0.75rem',
       },
       keyframes: {
         "accordion-down": {
@@ -88,24 +154,14 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "fade-in": {
-          from: { opacity: "0", transform: "translateY(20px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
-        "slide-in": {
-          from: { transform: "translateX(-100%)" },
-          to: { transform: "translateX(0)" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.6s ease-out",
-        "slide-in": "slide-in 0.5s ease-out",
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [require("tailwindcss-animate")],
 } satisfies Config;
 
 export default config;
