@@ -8,7 +8,7 @@ import { Heart, HandHeart, ArrowRight, Users } from "lucide-react";
 export function VolunteerSection() {
   return (
     <section
-      className="py-24 bg-gradient-to-br from-primary/5 via-background to-secondary/5"
+      className="py-24 bg-cksi-warm"
       aria-labelledby="volunteer-heading"
       data-testid="volunteer-section"
     >
@@ -30,12 +30,12 @@ export function VolunteerSection() {
             {/* Overlay with stats or badge */}
             <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Users className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 rounded-full bg-cksi-brand-red/10 flex items-center justify-center flex-shrink-0">
+                  <Users className="h-6 w-6 text-cksi-brand-red" />
                 </div>
                 <div>
-                  <p className="font-bold text-lg">50+ Volunteers</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-bold text-lg font-sans text-cksi-dark">50+ Volunteers</p>
+                  <p className="text-sm font-sans text-cksi-body">
                     Making impact across Nigeria
                   </p>
                 </div>
@@ -51,22 +51,22 @@ export function VolunteerSection() {
             {/* Section Header */}
             <div className="mb-8">
               <div
-                className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-4"
+                className="inline-flex items-center gap-2 bg-cksi-brand-red/10 text-cksi-brand-red px-4 py-2 rounded-full mb-4"
                 aria-hidden="true"
               >
                 <HandHeart className="h-4 w-4" />
-                <span className="text-sm font-medium">Make a Difference</span>
+                <span className="text-sm font-sans font-medium">Make a Difference</span>
               </div>
               <h2
                 id="volunteer-heading"
-                className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
+                className="text-3xl md:text-4xl lg:text-5xl font-serif text-cksi-dark mb-4"
               >
                 Join Our Mission to{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+                <span className="text-cksi-brand-red">
                   Transform Lives
                 </span>
               </h2>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg font-sans text-cksi-body">
                 Your time, skills, and contributions can create lasting change
                 in communities across Nigeria. Every action counts.
               </p>
@@ -75,14 +75,14 @@ export function VolunteerSection() {
             {/* Benefits List */}
             <div className="mb-8 space-y-4" data-testid="volunteer-benefits">
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <HandHeart className="h-3.5 w-3.5 text-primary" />
+                <div className="w-6 h-6 rounded-full bg-cksi-brand-red/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <HandHeart className="h-3.5 w-3.5 text-cksi-brand-red" />
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">
+                  <h3 className="font-semibold font-sans text-cksi-dark mb-1">
                     Volunteer Opportunities
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm font-sans text-cksi-body">
                     Flexible roles that match your skills and schedule. From
                     teaching to healthcare, find your perfect fit.
                   </p>
@@ -90,12 +90,12 @@ export function VolunteerSection() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Heart className="h-3.5 w-3.5 text-secondary" />
+                <div className="w-6 h-6 rounded-full bg-cksi-brand-red/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Heart className="h-3.5 w-3.5 text-cksi-brand-red" />
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">Financial Support</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-semibold font-sans text-cksi-dark mb-1">Financial Support</h3>
+                  <p className="text-sm font-sans text-cksi-body">
                     One-time or recurring donations that directly fund our
                     programs. 100% tax deductible.
                   </p>
@@ -111,7 +111,7 @@ export function VolunteerSection() {
               <Button
                 asChild
                 size="lg"
-                className="group/btn"
+                className="bg-cksi-brand-red hover:bg-cksi-brand-red/90 text-white rounded-full font-sans font-bold group/btn"
                 data-testid="volunteer-form-button"
               >
                 <Link href="/volunteer">
@@ -124,7 +124,7 @@ export function VolunteerSection() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="group/btn"
+                className="border-2 border-cksi-brand-red text-cksi-brand-red hover:bg-cksi-brand-red/5 rounded-full font-sans font-bold group/btn"
                 data-testid="donate-button"
               >
                 <Link href="/donate">
@@ -136,18 +136,18 @@ export function VolunteerSection() {
 
             {/* Additional Info */}
             <div
-              className="mt-6 text-sm text-muted-foreground"
+              className="mt-6 text-sm font-sans text-cksi-body"
               data-testid="volunteer-footer-text"
             >
               <p>
                 Questions about volunteering or donating?{" "}
                 <Link
                   href="/contact"
-                  className="text-primary hover:underline font-medium"
+                  className="text-cksi-brand-red hover:underline font-medium"
                 >
                   Contact us
                 </Link>{" "}
-                - we're here to help!
+                - we&apos;re here to help!
               </p>
             </div>
           </div>

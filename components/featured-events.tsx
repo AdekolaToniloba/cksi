@@ -1,4 +1,3 @@
-// components/featured-events.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,8 +12,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Images, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowRight, MapPin } from "lucide-react";
 
 interface GalleryEvent {
   id: string;
@@ -26,8 +24,6 @@ interface GalleryEvent {
   eventDate: string | null;
   coverImage: string | null;
   mediaCount: number;
-  imageCount: number;
-  videoCount: number;
 }
 
 interface FeaturedEventsProps {
@@ -68,21 +64,18 @@ export function FeaturedEvents({ limit = 6 }: FeaturedEventsProps) {
       console.error("Error fetching featured events:", error);
       setError("Failed to load events");
 
-      // Set demo data
+      // Set demo data matching the new clean design
       setEvents([
         {
           id: "1",
           title: "School Construction Project",
           slug: "school-construction-phase-1",
-          description:
-            "Building new classroom blocks in Lagos community to provide quality education",
+          description: "Building new classroom blocks in Lagos community to provide quality education",
           category: "education",
           location: "Lagos, Nigeria",
           eventDate: "2024-01-15T00:00:00Z",
-          coverImage: "/placeholder.svg",
+          coverImage: "https://res.cloudinary.com/dyhbo6rzr/image/upload/v1764332576/cksi/events/general/images/1764332572814-IMG_0258.jpg",
           mediaCount: 25,
-          imageCount: 20,
-          videoCount: 5,
         },
         {
           id: "2",
@@ -92,10 +85,8 @@ export function FeaturedEvents({ limit = 6 }: FeaturedEventsProps) {
           category: "healthcare",
           location: "Abuja, Nigeria",
           eventDate: "2024-02-20T00:00:00Z",
-          coverImage: "/placeholder.svg",
+          coverImage: "https://res.cloudinary.com/dyhbo6rzr/image/upload/v1764332576/cksi/events/general/images/1764332572814-IMG_0258.jpg",
           mediaCount: 18,
-          imageCount: 15,
-          videoCount: 3,
         },
         {
           id: "3",
@@ -105,10 +96,8 @@ export function FeaturedEvents({ limit = 6 }: FeaturedEventsProps) {
           category: "community",
           location: "Kano, Nigeria",
           eventDate: "2024-03-10T00:00:00Z",
-          coverImage: "/placeholder.svg",
+          coverImage: "https://res.cloudinary.com/dyhbo6rzr/image/upload/v1764332576/cksi/events/general/images/1764332572814-IMG_0258.jpg",
           mediaCount: 12,
-          imageCount: 10,
-          videoCount: 2,
         },
       ]);
     } finally {
@@ -118,24 +107,21 @@ export function FeaturedEvents({ limit = 6 }: FeaturedEventsProps) {
 
   if (isLoading) {
     return (
-      <section
-        className="py-24 bg-muted/30"
-        aria-labelledby="featured-events-heading"
-      >
-        <div className="container">
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px]">
           <div className="text-center mb-12">
-            <div className="h-10 bg-muted rounded-lg w-64 mx-auto mb-6 animate-pulse" />
-            <div className="h-6 bg-muted rounded-lg w-96 mx-auto animate-pulse" />
+            <div className="h-4 bg-gray-200 rounded w-32 mx-auto mb-4 animate-pulse" />
+            <div className="h-10 bg-gray-200 rounded w-64 mx-auto animate-pulse" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[...Array(3)].map((_, i) => (
-              <Card key={i} className="overflow-hidden">
-                <div className="aspect-[4/3] bg-muted animate-pulse" />
+              <div key={i} className="bg-white rounded-2xl overflow-hidden border border-gray-100">
+                <div className="aspect-[4/3] bg-gray-200 animate-pulse" />
                 <div className="p-6">
-                  <div className="h-6 bg-muted rounded w-3/4 mb-3 animate-pulse" />
-                  <div className="h-4 bg-muted rounded w-1/2 animate-pulse" />
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-3 animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         </div>
@@ -148,43 +134,20 @@ export function FeaturedEvents({ limit = 6 }: FeaturedEventsProps) {
   }
 
   return (
-    <section
-      className="py-24 bg-muted/30"
-      aria-labelledby="featured-events-heading"
-      data-testid="featured-events-section"
-    >
-      <div className="container">
+    <section className="py-20 lg:py-28 bg-white">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px]">
         {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2
-            id="featured-events-heading"
-            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
-          >
-            Featured{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-secondary">
-              Events
-            </span>
+        <div className="text-left mb-16 flex flex-col items-start">
+          <span className="block text-[11px] sm:text-xs font-sans font-bold tracking-widest text-cksi-brand-red uppercase mb-4">
+            LATEST UPDATES
+          </span>
+          <h2 className="text-4xl sm:text-5xl font-serif text-cksi-dark tracking-tight">
+            Latest Updates from CKSI
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Witness the transformative work happening across Nigeria
-          </p>
-        </motion.div>
+        </div>
 
         {/* Events Carousel */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="relative"
-          data-testid="featured-events-carousel"
-        >
+        <div className="relative">
           <Carousel
             opts={{
               align: "start",
@@ -192,126 +155,84 @@ export function FeaturedEvents({ limit = 6 }: FeaturedEventsProps) {
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-4">
-              {events.map((event, index) => (
+            <CarouselContent className="-ml-4 sm:-ml-8">
+              {events.map((event) => (
                 <CarouselItem
                   key={event.id}
-                  className="pl-4 md:basis-1/2 lg:basis-1/3"
-                  data-testid={`featured-event-${event.id}`}
+                  className="pl-4 sm:pl-8 md:basis-1/2 lg:basis-1/3"
                 >
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{
-                      duration: 0.5,
-                      delay: index * 0.1,
-                    }}
+                  <Link
+                    href={`/gallery/${event.slug}`}
+                    className="block group h-full"
+                    aria-label={`View ${event.title} gallery`}
                   >
-                    <Link
-                      href={`/gallery/${event.slug}`}
-                      className="block group"
-                      aria-label={`View ${event.title} gallery`}
-                    >
-                      <Card className="overflow-hidden h-full hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
-                        <motion.div
-                          className="relative aspect-[4/3] overflow-hidden bg-muted"
-                          whileHover={{ scale: 1.05 }}
-                          transition={{ duration: 0.6, ease: "easeOut" }}
-                        >
-                          <Image
-                            src={event.coverImage || "/placeholder.svg"}
-                            alt={event.title}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = "/placeholder.svg";
-                            }}
-                          />
+                    <Card className="h-full bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col">
+                      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+                        <Image
+                          src={event.coverImage || "/placeholder.svg"}
+                          alt={event.title}
+                          fill
+                          className="object-cover transition-transform duration-700 group-hover:scale-105"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "/placeholder.svg";
+                          }}
+                        />
 
-                          {/* Gradient Overlay */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0" />
-
-                          {/* Media Count Badge */}
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.3 }}
-                            className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-white text-sm px-3 py-1.5 rounded-full flex items-center gap-2 font-medium"
-                          >
-                            <Images className="h-4 w-4" />
-                            {event.mediaCount}
-                          </motion.div>
-
-                          {/* Hover overlay */}
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            whileHover={{ opacity: 1 }}
-                            transition={{ duration: 0.3 }}
-                            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center"
-                          >
-                            <motion.div
-                              initial={{ scale: 0.8, opacity: 0 }}
-                              whileHover={{ scale: 1, opacity: 1 }}
-                              transition={{ duration: 0.3 }}
-                              className="flex items-center gap-2 text-white font-medium text-lg"
-                            >
-                              <span>View Gallery</span>
-                              <ArrowRight className="h-5 w-5" />
-                            </motion.div>
-                          </motion.div>
-
-                          {/* Category Badge */}
-                          <div className="absolute bottom-4 left-4">
-                            <span className="bg-white/95 dark:bg-black/95 backdrop-blur-sm text-foreground text-xs px-3 py-1.5 rounded-full font-medium capitalize">
-                              {event.category}
-                            </span>
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-cksi-dark/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                          <div className="flex items-center gap-2 text-white font-sans font-semibold">
+                            <span>View Gallery</span>
+                            <ArrowRight className="h-4 w-4" />
                           </div>
-                        </motion.div>
-
-                        <div className="p-6">
-                          <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                            {event.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground line-clamp-1">
-                            {event.location || "Nigeria"}
-                          </p>
                         </div>
-                      </Card>
-                    </Link>
-                  </motion.div>
+
+                        {/* Category Badge */}
+                        <div className="absolute top-4 left-4 z-10">
+                          <span className="bg-cksi-brand-red text-white text-[10px] font-sans font-bold uppercase tracking-wider px-3 py-1.5 rounded-md shadow-sm">
+                            {event.category}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-6 flex flex-col flex-grow">
+                        <h3 className="text-xl font-sans font-bold text-cksi-dark mb-3 group-hover:text-cksi-brand-red transition-colors line-clamp-2">
+                          {event.title}
+                        </h3>
+                        
+                        <div className="mt-auto pt-4 flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-sm font-sans text-gray-500">
+                            <MapPin className="h-4 w-4" />
+                            <span className="line-clamp-1">{event.location || "Nigeria"}</span>
+                          </div>
+                          <ArrowRight className="h-5 w-5 text-gray-300 group-hover:text-cksi-brand-red transition-colors group-hover:translate-x-1 transform" />
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious
-              className="hidden md:flex -left-4 lg:-left-12"
-              aria-label="Previous events"
-            />
-            <CarouselNext
-              className="hidden md:flex -right-4 lg:-right-12"
-              aria-label="Next events"
-            />
+            <CarouselPrevious className="hidden md:flex -left-4 lg:-left-12 border-gray-200 text-cksi-dark hover:text-cksi-brand-red hover:border-cksi-brand-red transition-colors" />
+            <CarouselNext className="hidden md:flex -right-4 lg:-right-12 border-gray-200 text-cksi-dark hover:text-cksi-brand-red hover:border-cksi-brand-red transition-colors" />
           </Carousel>
-        </motion.div>
+        </div>
 
         {/* View All Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center mt-12"
-          data-testid="view-all-events"
-        >
-          <Button asChild size="lg" className="group">
+        <div className="text-left mt-16">
+          <Button 
+            asChild 
+            size="lg" 
+            variant="outline"
+            className="border-2 border-cksi-brand-red text-cksi-brand-red hover:bg-cksi-brand-red/5 rounded-full font-sans font-bold px-8 h-12 sm:h-14 group"
+          >
             <Link href="/gallery">
               View All Events
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </Button>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
