@@ -1,4 +1,4 @@
-import { Lock, ShieldCheck, Receipt } from "lucide-react";
+import { LockKeyhole, BadgeCheck, ReceiptText } from "lucide-react";
 
 export function DonateHero() {
   return (
@@ -16,17 +16,17 @@ export function DonateHero() {
 
         {/* Trust Badges */}
         <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12">
-          <div className="flex items-center gap-2">
-            <Lock className="h-4 w-4 text-[#4A6773]" />
-            <span className="text-sm font-sans font-bold text-[#4A6773]">Secure Payment</span>
+          <div className="flex items-center gap-2 text-[#2E4B57]">
+            <LockKeyhole className="h-4 w-4" fill="currentColor" />
+            <span className="text-sm font-sans font-bold">Secure Payment</span>
           </div>
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-[#4A6773]" />
-            <span className="text-sm font-sans font-bold text-[#4A6773]">100% to Programs</span>
+          <div className="flex items-center gap-2 text-[#2E4B57]">
+            <BadgeCheck className="h-4 w-4" fill="currentColor" />
+            <span className="text-sm font-sans font-bold">100% to Programs</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Receipt className="h-4 w-4 text-[#4A6773]" />
-            <span className="text-sm font-sans font-bold text-[#4A6773]">Email Receipt</span>
+          <div className="flex items-center gap-2 text-[#2E4B57]">
+            <ReceiptText className="h-4 w-4" fill="currentColor" />
+            <span className="text-sm font-sans font-bold">Email Receipt</span>
           </div>
         </div>
       </div>

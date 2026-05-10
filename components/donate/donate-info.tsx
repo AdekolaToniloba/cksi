@@ -30,9 +30,9 @@ export function DonateInfo() {
       </div>
 
       {/* Testimonial */}
-      <div className="bg-[#E6F3FA] rounded-2xl p-6 sm:p-8">
+      <div className="bg-[#ADCBDA] rounded-2xl p-6 sm:p-8">
         <Quote className="h-8 w-8 text-cksi-brand-red mb-4" />
-        <p className="font-serif text-lg text-[#0066CC] leading-relaxed italic mb-6">
+        <p className="font-serif text-lg text-[#59413F] leading-relaxed italic mb-6">
           "The support from CKSI didn't just provide medical help; it gave our family hope when we felt completely overwhelmed. This community is a lifeline."
         </p>
         <p className="font-sans font-bold text-sm text-[#151C27]">
@@ -41,11 +41,11 @@ export function DonateInfo() {
       </div>
 
       {/* Trust & Transparency */}
-      <div className="bg-gray-50 rounded-2xl p-6 sm:p-8 text-center border border-gray-100">
-        <h3 className="font-sans font-bold text-xs tracking-[0.15em] text-[#151C27] uppercase mb-4">
+      <div className="bg-[#F0F3FF] rounded-2xl p-6 sm:p-8 text-center border border-gray-100">
+        <h3 className="font-sans font-bold text-xs tracking-[0.15em] text-[#59413F] uppercase mb-4">
           TRANSPARENCY & TRUST
         </h3>
-        <p className="font-sans text-xs text-gray-500 leading-relaxed mb-6">
+        <p className="font-sans text-xs text-[#59413F] leading-relaxed mb-6">
           CKSI is a registered Non-Governmental Organization in Nigeria. All donations are processed securely through Paystack. We are committed to financial transparency.
         </p>
         <div className="flex items-center justify-center gap-4 text-gray-400">
