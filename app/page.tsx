@@ -1,15 +1,8 @@
 import { HeroSection } from "@/components/hero-section";
 import { MissionSection } from "@/components/mission-section";
 import { ProgramsTeaserSection } from "@/components/programs-teaser-section";
-// import { ImpactStats } from "@/components/impact-stats";
-// import { FeaturedPrograms } from "@/components/featured-programs";
-// import { RecentBlogPosts } from "@/components/recent-blog-posts";
-// import { NewsletterSignup } from "@/components/newsletter-signup";
-// import { TestimonialsCarousel } from "@/components/testimonials-carousel";
-// import { PartnerLogos } from "@/components/partner-logos";
 import { VolunteerSection } from "@/components/volunteer/volunteer-section";
-import { FeaturedEvents } from "@/components/featured-events";
-// import { NewsletterPopup } from "@/components/newsletter-popup";
+import { FeaturedUpdates } from "@/components/home/featured-updates";
 
 export default function HomePage() {
   return (
@@ -18,15 +11,11 @@ export default function HomePage() {
       <MissionSection />
       <ProgramsTeaserSection />
 
-      {/* Add breathing room between sections with padding */}
       <div className="space-y-0">
-        {/* <RecentBlogPosts /> */}
-        <FeaturedEvents limit={6} />
+        {/* FeaturedUpdates: server component — fetches 3 latest gallery events */}
+        <FeaturedUpdates />
         <VolunteerSection />
-        {/* <NewsletterSignup /> */}
       </div>
-
-      {/* <NewsletterPopup /> */}
     </main>
   );
 }

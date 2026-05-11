@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "Explore the impact of CKSI across Nigeria through our health, education, and community pillars.",
 };
 
-export default function OurWorkPage() {
+export default async function OurWorkPage() {
   return (
     <main className="min-h-screen bg-[#FAF8F5]">
       <WorkHero />
@@ -21,3 +21,4 @@ export default function OurWorkPage() {
     </main>
   );
 }
+
