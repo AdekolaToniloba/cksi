@@ -11,15 +11,14 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1400px] mx-auto">
           {/* Brand */}
           <div className="space-y-4">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="relative w-10 h-10 overflow-hidden rounded-md bg-cksi-red/10 p-1">
-                <div className="w-full h-full bg-cksi-brand-red rounded flex items-center justify-center text-cksi-brand-light font-serif font-bold text-xs">
-                  CKSI
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-serif font-bold text-cksi-brand-light tracking-tight">CKSI</span>
-                <span className="text-[10px] text-cksi-brand-red font-bold uppercase tracking-widest mt-0.5">Social Initiative</span>
+            <Link href="/" className="flex items-center">
+              <div className="relative w-32 h-12">
+                <Image
+                  src="/cksi-logo.png"
+                  alt="CKSI Logo"
+                  fill
+                  className="object-contain object-left"
+                />
               </div>
             </Link>
             <p className="text-sm text-cksi-brand-light/80">

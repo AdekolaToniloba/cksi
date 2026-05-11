@@ -439,10 +439,16 @@ function MobileMenu({
         className="w-[300px] sm:w-[400px] p-0 border-l-gray-200"
       >
         <div className="flex flex-col h-full bg-cksi-brand-surface">
-          <div className="p-6 border-b border-gray-100">
-            <span className="font-serif font-bold text-2xl tracking-tight text-cksi-dark">
-              CKSI
-            </span>
+          <div className="p-6 border-b border-gray-100 flex items-center h-[89px]">
+            <div className="relative w-28 h-10">
+              <Image
+                src="/cksi-logo.png"
+                alt="CKSI Logo"
+                fill
+                className="object-contain object-left"
+                priority
+              />
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto py-6 px-4">
@@ -552,19 +558,15 @@ export function Navbar() {
     >
       <div className="h-full max-w-[1400px] mx-auto flex items-center justify-between px-4 md:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group z-50">
-          <div className="relative w-10 h-10 overflow-hidden rounded-md bg-cksi-brand-red/10 p-1">
-            <div className="w-full h-full bg-cksi-brand-red rounded flex items-center justify-center text-white font-serif font-bold text-xs">
-              CKSI
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xl font-serif font-bold leading-none text-cksi-dark tracking-tight group-hover:text-cksi-brand-red transition-colors">
-              CKSI
-            </span>
-            <span className="text-[10px] font-sans font-bold text-cksi-gray uppercase tracking-widest mt-0.5">
-              Social Initiative
-            </span>
+        <Link href="/" className="flex items-center group z-50">
+          <div className="relative w-28 h-10">
+            <Image
+              src="/cksi-logo.png"
+              alt="CKSI Logo"
+              fill
+              className="object-contain object-left"
+              priority
+            />
           </div>
         </Link>
 
