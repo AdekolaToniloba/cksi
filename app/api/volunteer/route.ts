@@ -4,34 +4,30 @@ import { prisma } from "@/lib/prisma";
 import { volunteerFormSchema } from "@/lib/validations/volunteer";
 import { VolunteerApiResponse } from "@/types/volunteer";
 import { z } from "zod";
-
-// Logging utility
-function logVolunteerActivity(
-  action: string,
-  data: Record<string, unknown>,
-  level: "info" | "error" | "warn" = "info"
-) {
-  const timestamp = new Date().toISOString();
-  const logMessage = {
-    timestamp,
-    action,
-    level,
-    ...data,
-  };
-
-  if (level === "error") {
-    console.error("[VOLUNTEER API]", JSON.stringify(logMessage));
-  } else if (level === "warn") {
-    console.warn("[VOLUNTEER API]", JSON.stringify(logMessage));
-  } else {
-    console.log("[VOLUNTEER API]", JSON.stringify(logMessage));
-  }
-}
+import { requireAdminAuthAPI } from "@/lib/auth-helpers";
+import { rateLimit } from "@/lib/monitoring/middleware";
+import { getClientIP } from "@/lib/utils/ip";
+// Task 11: Import shared logger — removed duplicate local function
+import { logVolunteerActivity } from "@/lib/monitoring/volunteer-logger";
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
+    // Task 4: Rate limiting — 5 submissions per minute per IP
+    const ip = getClientIP(request);
+    const { success } = rateLimit(ip, 5, 60 * 1000);
+    if (!success) {
+      return NextResponse.json<VolunteerApiResponse>(
+        {
+          success: false,
+          message: "Too many requests. Please try again in a minute.",
+          error: "RATE_LIMITED",
+        },
+        { status: 429 }
+      );
+    }
+
     logVolunteerActivity("volunteer_submission_started", {
       ip: request.headers.get("x-forwarded-for") || "unknown",
       userAgent: request.headers.get("user-agent") || "unknown",
@@ -148,6 +144,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    // Task 1: Secure — only admins can list volunteers (returns 401 JSON, not redirect)
+    const authError = await requireAdminAuthAPI();
+    if (authError) return authError;
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");

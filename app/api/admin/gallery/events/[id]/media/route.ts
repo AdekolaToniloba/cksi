@@ -5,13 +5,14 @@ import { requireAdminAuth } from "@/lib/auth-helpers";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdminAuth();
+    const { id } = await params;
 
     const media = await prisma.galleryMedia.findMany({
-      where: { eventId: params.id },
+      where: { eventId: id },
       orderBy: [{ orderIndex: "asc" }, { createdAt: "desc" }],
     });
 
@@ -48,10 +49,11 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdminAuth();
+    const { id } = await params;
 
     const body = await request.json();
     const {
@@ -80,7 +82,7 @@ export async function POST(
 
     // Verify event exists
     const event = await prisma.galleryEvent.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!event) {
@@ -102,7 +104,7 @@ export async function POST(
 
     const media = await prisma.galleryMedia.create({
       data: {
-        eventId: params.id,
+        eventId: id,
         title,
         description,
         mediaUrl,
@@ -116,7 +118,7 @@ export async function POST(
         cloudinaryPublicId,
         cloudinaryFolder: finalCloudinaryFolder,
         cloudinaryFormat: finalCloudinaryFormat,
-        cloudinaryTags: cloudinaryTags || ["cksi", "event", params.id],
+        cloudinaryTags: cloudinaryTags || ["cksi", "event", id],
       },
     });
 

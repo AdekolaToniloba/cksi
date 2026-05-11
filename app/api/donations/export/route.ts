@@ -1,9 +1,16 @@
 // app/api/donations/export/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdminAuthAPI } from "@/lib/auth-helpers";
+
+const MAX_EXPORT_ROWS = 5000;
 
 export async function GET(request: NextRequest) {
   try {
+    // Task 2: Secure — only admins can export donation data (NDPR/GDPR compliance)
+    const authError = await requireAdminAuthAPI();
+    if (authError) return authError;
+
     const { searchParams } = new URL(request.url);
 
     // Parse query parameters
@@ -29,10 +36,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Fetch all donations matching filters (no limit for export)
+    // Task 2: Hard cap to prevent Vercel timeout with large datasets
     const donations = await prisma.donation.findMany({
       where,
       orderBy: { createdAt: "desc" },
+      take: MAX_EXPORT_ROWS,
     });
 
     if (format === "csv") {
@@ -88,6 +96,8 @@ export async function GET(request: NextRequest) {
         headers: {
           "Content-Type": "text/csv",
           "Content-Disposition": `attachment; filename="${filename}"`,
+          "X-Export-Limit": MAX_EXPORT_ROWS.toString(),
+          "X-Export-Count": donations.length.toString(),
         },
       });
     }

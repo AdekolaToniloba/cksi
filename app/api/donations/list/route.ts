@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/monitoring/logger";
 import { metrics } from "@/lib/monitoring/metrics";
+import { requireAdminAuthAPI } from "@/lib/auth-helpers";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const start = Date.now();
   try {
+    // Task 3: Secure — only admins can view donation records
+    const authError = await requireAdminAuthAPI();
+    if (authError) return authError;
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const limit = parseInt(searchParams.get("limit") || "20");

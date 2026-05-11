@@ -15,40 +15,32 @@ export async function GET(request: NextRequest) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    // Get total submissions
-    const totalSubmissions = await prisma.volunteer.count();
+    // Task 7: Parallel queries — replaces 5 sequential round trips with 1 batch
+    const [totalSubmissions, pendingReview, approved, capacityCounts, recentSubmissions] =
+      await Promise.all([
+        prisma.volunteer.count(),
+        prisma.volunteer.count({
+          where: { status: VolunteerStatus.PENDING },
+        }),
+        prisma.volunteer.count({
+          where: { status: VolunteerStatus.APPROVED },
+        }),
+        prisma.volunteer.groupBy({
+          by: ["capacity"],
+          _count: true,
+        }),
+        prisma.volunteer.findMany({
+          where: { createdAt: { gte: startDate } },
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        }),
+      ]);
 
-    // Get pending review count
-    const pendingReview = await prisma.volunteer.count({
-      where: { status: VolunteerStatus.PENDING },
-    });
-
-    // Get approved count
-    const approved = await prisma.volunteer.count({
-      where: { status: VolunteerStatus.APPROVED },
-    });
-
-    // Get submissions by capacity
-    const capacityCounts = await prisma.volunteer.groupBy({
-      by: ["capacity"],
-      _count: true,
-    });
-
+    // Reduce capacityCounts groupBy into a map
     const byCapacity = capacityCounts.reduce((acc, item) => {
       acc[item.capacity as VolunteerCapacity] = item._count;
       return acc;
     }, {} as Record<VolunteerCapacity, number>);
-
-    // Get recent submissions
-    const recentSubmissions = await prisma.volunteer.findMany({
-      where: {
-        createdAt: {
-          gte: startDate,
-        },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-    });
 
     // Get submissions over time
     const submissionsOverTime = await prisma.volunteer.groupBy({

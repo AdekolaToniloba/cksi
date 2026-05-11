@@ -35,6 +35,16 @@ export async function POST(request: NextRequest) {
       case "charge.failed":
         await handleChargeFailed(event.data);
         break;
+      // Task 12: Subscription and invoice events for monthly donors
+      case "subscription.create":
+        await handleSubscriptionCreate(event.data);
+        break;
+      case "invoice.payment_success":
+        await handleInvoiceSuccess(event.data);
+        break;
+      case "invoice.payment_failed":
+        await handleInvoiceFailed(event.data);
+        break;
       default:
         console.log(`Unhandled event type: ${event.event}`);
     }
@@ -98,5 +108,67 @@ async function handleChargeFailed(data: any) {
     }
   } catch (error) {
     console.error("Error handling charge failed:", error);
+  }
+}
+
+// Task 12: Handle subscription created — log only (no Subscription model yet)
+async function handleSubscriptionCreate(data: any) {
+  try {
+    console.log(`Subscription created: ${data.subscription_code}`, {
+      email: data.customer?.email,
+      plan: data.plan?.name,
+      amount: data.plan?.amount,
+    });
+    // Future: create a Subscription record in the database
+    // For now: log only — no Subscription model exists yet
+  } catch (error) {
+    console.error("Error handling subscription create:", error);
+  }
+}
+
+// Task 12: Handle invoice payment success — marks recurring donation as COMPLETED
+async function handleInvoiceSuccess(data: any) {
+  try {
+    const reference = data.transaction?.reference;
+    if (!reference) return;
+
+    const donation = await prisma.donation.findUnique({
+      where: { paymentReference: reference },
+    });
+
+    if (donation) {
+      await prisma.donation.update({
+        where: { id: donation.id },
+        data: {
+          status: "COMPLETED",
+          paystackReference: reference,
+        },
+      });
+      console.log(`Monthly donation ${donation.id} completed via invoice webhook`);
+    }
+  } catch (error) {
+    console.error("Error handling invoice success:", error);
+  }
+}
+
+// Task 12: Handle invoice payment failed — marks recurring donation as FAILED
+async function handleInvoiceFailed(data: any) {
+  try {
+    const reference = data.transaction?.reference;
+    if (!reference) return;
+
+    const donation = await prisma.donation.findUnique({
+      where: { paymentReference: reference },
+    });
+
+    if (donation) {
+      await prisma.donation.update({
+        where: { id: donation.id },
+        data: { status: "FAILED", paystackReference: reference },
+      });
+      console.log(`Monthly donation ${donation.id} failed via invoice webhook`);
+    }
+  } catch (error) {
+    console.error("Error handling invoice failed:", error);
   }
 }

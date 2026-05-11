@@ -4,11 +4,23 @@ import { logger } from "@/lib/monitoring/logger";
 import { metrics } from "@/lib/monitoring/metrics";
 import { generatePaymentReference } from "@/lib/utils";
 import { SecurityUtils } from "@/lib/security";
+import { rateLimit } from "@/lib/monitoring/middleware";
+import { getClientIP } from "@/lib/utils/ip";
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
+    // Task 4: Rate limiting — 10 donation attempts per minute per IP
+    const ip = getClientIP(request);
+    const { success } = rateLimit(ip, 10, 60 * 1000);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { amount, donor_email, currency = "NGN" } = body;
 

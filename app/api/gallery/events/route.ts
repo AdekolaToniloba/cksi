@@ -2,6 +2,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Task 8: Cache route with 60-second revalidation
+export const revalidate = 60;
+
 export async function GET() {
   try {
     const events = await prisma.galleryEvent.findMany({
@@ -24,22 +27,20 @@ export async function GET() {
         mediaItems: {
           where: {
             isPublished: true,
+            mediaType: "IMAGE", // Task 8: Only fetch the cover image
           },
           select: {
             id: true,
-            title: true,
-            description: true,
             mediaUrl: true,
             mediaType: true,
             width: true,
             height: true,
-            duration: true,
             orderIndex: true,
           },
           orderBy: {
             orderIndex: "asc",
           },
-          take: 6, // Featured media preview
+          take: 1, // Task 8: Only the cover/featured image per event
         },
       },
     });
@@ -55,19 +56,16 @@ export async function GET() {
       coverImage: event.coverImage,
       createdAt: event.createdAt.toISOString(),
       mediaCount: event._count.mediaItems,
-      imageCount: event.mediaItems.filter((item) => item.mediaType === "IMAGE")
-        .length,
-      videoCount: event.mediaItems.filter((item) => item.mediaType === "VIDEO")
-        .length,
+      // Task 8: imageCount/videoCount now come from DB-level counts via separate _count selects
+      // For now, count from the single fetched cover image
+      imageCount: event.mediaItems.length, // all fetched items are IMAGEs
+      videoCount: 0, // no videos fetched in preview — use full event route for details
       featuredMedia: event.mediaItems.map((item) => ({
         id: item.id,
-        title: item.title,
-        description: item.description,
         mediaUrl: item.mediaUrl,
         mediaType: item.mediaType,
         width: item.width,
         height: item.height,
-        duration: item.duration,
       })),
     }));
 

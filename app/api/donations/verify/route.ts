@@ -45,6 +45,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Task 10: Find donation first and short-circuit if already COMPLETED
+    const donation = await prisma.donation.findUnique({
+      where: { id: donation_id },
+    });
+
+    if (!donation) {
+      return NextResponse.json(
+        { success: false, error: "Donation not found" },
+        { status: 404 }
+      );
+    }
+
+    // Early return if already verified — avoid unnecessary Paystack API call
+    if (donation.status === "COMPLETED") {
+      return NextResponse.json({
+        success: true,
+        message: "Payment already verified",
+        data: {
+          amount: donation.amount,
+          reference: donation.paymentReference,
+          status: "success",
+        },
+      });
+    }
+
     // Initialize Paystack verification
     try {
       // Verify payment with Paystack

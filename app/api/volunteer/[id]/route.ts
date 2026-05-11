@@ -2,36 +2,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { VolunteerStatus } from "@/types/volunteer";
-
-function logVolunteerActivity(
-  action: string,
-  data: Record<string, unknown>,
-  level: "info" | "error" | "warn" = "info"
-) {
-  const timestamp = new Date().toISOString();
-  const logMessage = {
-    timestamp,
-    action,
-    level,
-    ...data,
-  };
-
-  if (level === "error") {
-    console.error("[VOLUNTEER API]", JSON.stringify(logMessage));
-  } else if (level === "warn") {
-    console.warn("[VOLUNTEER API]", JSON.stringify(logMessage));
-  } else {
-    console.log("[VOLUNTEER API]", JSON.stringify(logMessage));
-  }
-}
+// Task 11: Import shared logger — removed duplicate local function
+import { logVolunteerActivity } from "@/lib/monitoring/volunteer-logger";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const volunteer = await prisma.volunteer.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!volunteer) {
@@ -58,7 +39,7 @@ export async function GET(
     logVolunteerActivity(
       "volunteer_retrieve_error",
       {
-        volunteerId: params.id,
+        volunteerId: (await params).id,
         error: error instanceof Error ? error.message : "Unknown error",
       },
       "error"
@@ -77,9 +58,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { status } = body;
 
@@ -97,7 +79,7 @@ export async function PATCH(
 
     // Check if volunteer exists
     const existingVolunteer = await prisma.volunteer.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingVolunteer) {
@@ -113,7 +95,7 @@ export async function PATCH(
 
     // Update volunteer
     const updatedVolunteer = await prisma.volunteer.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status,
         updatedAt: new Date(),
@@ -138,7 +120,7 @@ export async function PATCH(
     logVolunteerActivity(
       "volunteer_update_error",
       {
-        volunteerId: params.id,
+        volunteerId: "unknown",
         error: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,
       },
@@ -158,12 +140,13 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Check if volunteer exists
     const existingVolunteer = await prisma.volunteer.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingVolunteer) {
@@ -179,11 +162,11 @@ export async function DELETE(
 
     // Delete volunteer
     await prisma.volunteer.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     logVolunteerActivity("volunteer_deleted", {
-      volunteerId: params.id,
+      volunteerId: id,
       email: existingVolunteer.email,
       status: existingVolunteer.status,
     });
@@ -196,7 +179,7 @@ export async function DELETE(
     logVolunteerActivity(
       "volunteer_delete_error",
       {
-        volunteerId: params.id,
+        volunteerId: "unknown",
         error: error instanceof Error ? error.message : "Unknown error",
       },
       "error"
