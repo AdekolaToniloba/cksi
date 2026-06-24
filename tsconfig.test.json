@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "types": ["node", "vitest/globals"]
+  },
+  "include": [
+    "vitest.config.ts",
+    "types/**/*.d.ts",
+    "tests/setup/**/*.ts",
+    "tests/**/*.test.ts",
+    "lib/security.ts"
+  ],
+  "exclude": ["node_modules", ".next", "coverage"]
+}

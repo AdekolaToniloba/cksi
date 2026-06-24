@@ -1,18 +1,17 @@
+import Image from "next/image";
 import { teamMembers } from "@/data/organization";
 
-// Helper function to extract initials
 function getInitials(name: string) {
   return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
 }
 
-// Background colors for the avatars to match the design roughly
 const avatarColors = [
-  "bg-cksi-brand-red text-white",      // AT
-  "bg-[#C6E4F3] text-[#4A6773]",       // AY
-  "bg-[#6B6B6B] text-white",           // EO
-  "bg-[#FCE6E4] text-cksi-brand-red",  // GA
-  "bg-[#E2F2FA] text-[#4A6773]",       // DE
-  "bg-[#EFEBE4] text-[#5C5549]",       // FH
+  "bg-cksi-brand-red text-white",
+  "bg-[#C6E4F3] text-[#4A6773]",
+  "bg-[#6B6B6B] text-white",
+  "bg-[#FCE6E4] text-cksi-brand-red",
+  "bg-[#E2F2FA] text-[#4A6773]",
+  "bg-[#EFEBE4] text-[#5C5549]",
 ];
 
 export function TeamSection() {
@@ -27,30 +26,44 @@ export function TeamSection() {
           {teamMembers.map((member, index) => {
             const avatarClass = avatarColors[index % avatarColors.length];
             return (
-              <div 
-                key={member.name} 
-                className="bg-white rounded-xl border border-gray-100 p-8 pt-12 relative flex flex-col items-center text-center shadow-sm"
+              <div
+                key={member.name}
+                className="group bg-white rounded-xl border border-gray-100 p-8 pt-12 relative flex flex-col items-center text-center shadow-sm transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:border-white hover:shadow-xl motion-reduce:transition-none motion-reduce:hover:translate-y-0"
               >
-                {/* Years of Experience Badge */}
-                <div className="absolute top-4 right-4 bg-[#E5F0F9] text-[#4A6773] px-3 py-1 rounded-full text-xs font-sans font-medium">
-                  {member.experience} yrs
+                {member.experience ? (
+                  <div className="absolute top-4 right-4 bg-[#E5F0F9] text-[#4A6773] px-3 py-1 rounded-full text-xs font-sans font-medium">
+                    {member.experience} yrs
+                  </div>
+                ) : null}
+
+                <div
+                  aria-hidden="true"
+                  className={`relative w-20 h-20 sm:w-24 sm:h-24 overflow-hidden rounded-full flex items-center justify-center text-xl sm:text-2xl font-serif mb-6 shadow-sm ring-4 ring-white transition-transform duration-300 ease-out group-hover:scale-105 motion-reduce:transition-none ${member.image ? "bg-white" : avatarClass}`}
+                >
+                  {member.image ? (
+                    <Image
+                      src={member.image}
+                      alt=""
+                      fill
+                      sizes="(min-width: 640px) 96px, 80px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    getInitials(member.name)
+                  )}
                 </div>
 
-                {/* Avatar */}
-                <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-xl sm:text-2xl font-serif mb-6 ${avatarClass}`}>
-                  {getInitials(member.name)}
-                </div>
-
-                {/* Content */}
                 <h3 className="text-lg sm:text-xl font-sans font-bold text-cksi-dark mb-1">
                   {member.name}
                 </h3>
-                <p className="text-sm font-sans font-medium text-cksi-brand-red mb-4">
+                <p className={`text-sm font-sans font-medium text-cksi-brand-red ${member.bio ? "mb-4" : "mb-0"}`}>
                   {member.position}
                 </p>
-                <p className="text-sm font-sans text-cksi-body leading-relaxed max-w-xs">
-                  {member.bio}
-                </p>
+                {member.bio ? (
+                  <p className="text-sm font-sans text-cksi-body leading-relaxed max-w-xs">
+                    {member.bio}
+                  </p>
+                ) : null}
               </div>
             );
           })}

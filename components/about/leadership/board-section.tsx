@@ -1,20 +1,18 @@
+import Image from "next/image";
 import { boardMembers } from "@/data/organization";
 
-// Helper function to extract initials
 function getInitials(name: string) {
-  // Remove titles like Prof., Mrs., Dr., Barr., Mr. for initials
-  const cleanName = name.replace(/^(Prof\.|Mrs\.|Dr\.|Barr\.|Mr\.)\s+/i, "");
+  const cleanName = name.replace(/^(Prof\.|Mrs\.|Dr\.|Barr\.|Mr\.|Mr)\s+/i, "");
   return cleanName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
 }
 
-// Background colors for the avatars to match the design roughly
 const avatarColors = [
-  "bg-cksi-brand-red text-white",      // Prof. Chidi Okonkwo (CO)
-  "bg-[#C6E4F3] text-[#4A6773]",       // Mrs. Kemi Adeleke (KA)
-  "bg-[#6B6B6B] text-white",           // Dr. Ibrahim Musa (IM)
-  "bg-[#FCE6E4] text-cksi-brand-red",  // Barr. Ngozi Okwu (NO)
-  "bg-[#E2F2FA] text-[#4A6773]",       // Mr. Tunde Bakare (TB)
-  "bg-[#EFEBE4] text-[#5C5549]",       // Dr. Aisha Abdullahi (AA)
+  "bg-cksi-brand-red text-white",
+  "bg-[#C6E4F3] text-[#4A6773]",
+  "bg-[#6B6B6B] text-white",
+  "bg-[#FCE6E4] text-cksi-brand-red",
+  "bg-[#E2F2FA] text-[#4A6773]",
+  "bg-[#EFEBE4] text-[#5C5549]",
 ];
 
 export function BoardSection() {
@@ -31,21 +29,34 @@ export function BoardSection() {
           {boardMembers.map((member, index) => {
             const avatarClass = avatarColors[index % avatarColors.length];
             return (
-              <div 
-                key={member.name} 
-                className="bg-white/80 sm:bg-white rounded-[20px] p-4 sm:p-5 flex items-center gap-4 hover:shadow-md transition-shadow"
+              <div
+                key={member.name}
+                className="group bg-white/85 sm:bg-white rounded-[24px] border border-white/70 p-4 sm:p-5 flex items-center gap-4 shadow-sm transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:border-white hover:shadow-xl motion-reduce:transition-none motion-reduce:hover:translate-y-0"
               >
-                {/* Avatar */}
-                <div className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center text-sm font-sans font-bold ${avatarClass}`}>
-                  {getInitials(member.name)}
+                <div
+                  aria-hidden="true"
+                  className={`relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 overflow-hidden rounded-full ring-4 ring-white shadow-sm transition-transform duration-300 ease-out group-hover:scale-105 motion-reduce:transition-none ${member.image ? "bg-white" : avatarClass}`}
+                >
+                  {member.image ? (
+                    <Image
+                      src={member.image}
+                      alt=""
+                      fill
+                      sizes="(min-width: 640px) 80px, 64px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-full w-full items-center justify-center text-lg sm:text-xl font-sans font-bold">
+                      {getInitials(member.name)}
+                    </span>
+                  )}
                 </div>
 
-                {/* Content */}
                 <div className="flex flex-col">
                   <h3 className="text-base font-sans font-bold text-[#151C27] mb-0.5 leading-tight">
                     {member.name}
                   </h3>
-                  <p className="text-xs font-sans text-cksi-body leading-tight">
+                  <p className="text-xs sm:text-sm font-sans text-cksi-body leading-tight">
                     {member.position}
                   </p>
                 </div>
